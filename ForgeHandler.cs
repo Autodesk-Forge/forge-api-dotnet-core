@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Polly;
 using System;
 using System.Collections.Generic;
@@ -12,10 +13,11 @@ namespace Autodesk.Forge.Core
 {
     public class ForgeHandler : DelegatingHandler
     {
-        private readonly Configuration configuration;
+        public readonly IOptions<ForgeConfiguration> configuration;
+
         private Dictionary<string, string> tokenCache = new Dictionary<string, string>();
 
-        public ForgeHandler(Configuration configuration)
+        public ForgeHandler(IOptions<ForgeConfiguration> configuration)
         {
             this.configuration = configuration;
         }
@@ -42,7 +44,7 @@ namespace Autodesk.Forge.Core
 
         private async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
         {
-            if (request.Properties.TryGetValue("Autodesk.Forge.Scope", out var obj) && obj != null && obj is string)
+            if (request.Properties.TryGetValue(Core.ForgeConfiguration.ForgeScopeHttpRequestPropertyKey, out var obj) && obj != null && obj is string)
             {
                 var scope = (string)obj;
                 if (ignoreCache || !tokenCache.TryGetValue(scope, out var token))
@@ -57,13 +59,14 @@ namespace Autodesk.Forge.Core
         {
             using (var request = new HttpRequestMessage())
             {
+                var config = this.configuration.Value;
                 var values = new List<KeyValuePair<string, string>>();
-                values.Add(new KeyValuePair<string, string>("client_id", this.configuration.ForgeKey));
-                values.Add(new KeyValuePair<string, string>("client_secret", this.configuration.ForgeSecret));
+                values.Add(new KeyValuePair<string, string>("client_id", config.ForgeKey));
+                values.Add(new KeyValuePair<string, string>("client_secret", config.ForgeSecret));
                 values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
                 values.Add(new KeyValuePair<string, string>("scope", scope));
                 request.Content = new FormUrlEncodedContent(values);
-                request.RequestUri = this.configuration.ForgeAuthenticationAddress;
+                request.RequestUri = config.ForgeAuthenticationAddress;
                 request.Method = HttpMethod.Post;
 
                 var response = await base.SendAsync(request, cancellationToken);
