@@ -44,7 +44,7 @@ namespace Autodesk.Forge.Core
 
         private async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
         {
-            if (request.Properties.TryGetValue(Core.ForgeConfiguration.ForgeScopeHttpRequestPropertyKey, out var obj) && obj != null && obj is string)
+            if (request.Properties.TryGetValue(Core.ForgeConfiguration.ScopeKey, out var obj) && obj != null && obj is string)
             {
                 var scope = (string)obj;
                 if (ignoreCache || !tokenCache.TryGetValue(scope, out var token))
@@ -61,12 +61,12 @@ namespace Autodesk.Forge.Core
             {
                 var config = this.configuration.Value;
                 var values = new List<KeyValuePair<string, string>>();
-                values.Add(new KeyValuePair<string, string>("client_id", config.ForgeKey));
-                values.Add(new KeyValuePair<string, string>("client_secret", config.ForgeSecret));
+                values.Add(new KeyValuePair<string, string>("client_id", config.ClientId));
+                values.Add(new KeyValuePair<string, string>("client_secret", config.ClientSecret));
                 values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
                 values.Add(new KeyValuePair<string, string>("scope", scope));
                 request.Content = new FormUrlEncodedContent(values);
-                request.RequestUri = config.ForgeAuthenticationAddress;
+                request.RequestUri = config.AuthenticationAddress;
                 request.Method = HttpMethod.Post;
 
                 var response = await base.SendAsync(request, cancellationToken);

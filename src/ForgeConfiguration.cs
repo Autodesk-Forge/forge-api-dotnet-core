@@ -8,14 +8,13 @@ namespace Autodesk.Forge.Core
 {
     public class ForgeConfiguration
     {
-        public const string ForgeScopeHttpRequestPropertyKey = "Autodesk.Forge.Scope";
+        public const string ScopeKey = "Autodesk.Forge.Scope";
         public ForgeConfiguration()
         {
-            this.ForgeAuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v1/authenticate");
+            this.AuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v1/authenticate");
         }
-        public string ForgeKey { get; set; }
-        public string ForgeSecret { get; set; }
-        public Uri ForgeAuthenticationAddress { get; set; }
-        public Uri BaseAddress { get; set; }
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
+        public Uri AuthenticationAddress { get; set; }
     }
 }
