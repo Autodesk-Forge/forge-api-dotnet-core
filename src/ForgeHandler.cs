@@ -15,7 +15,7 @@ namespace Autodesk.Forge.Core
     {
         protected readonly IOptions<ForgeConfiguration> configuration;
 
-        protected Dictionary<string, string> TokenCache { get; private set; } = new Dictionary<string, string>();
+        protected ITokenCache TokenCache { get; private set; } = new TokenCache();
 
         public ForgeHandler(IOptions<ForgeConfiguration> configuration)
         {
@@ -61,8 +61,9 @@ namespace Autodesk.Forge.Core
                 var scope = (string)obj;
                 if (ignoreCache || !TokenCache.TryGetValue(scope, out var token))
                 {
-                    token = await this.Get2LeggedTokenAsync(scope, cancellationToken);
-                    TokenCache[scope] = token;
+                    TimeSpan expiry;
+                    (token, expiry) = await this.Get2LeggedTokenAsync(scope, cancellationToken);
+                    TokenCache.Add(scope, token, expiry);
                 }
                 request.Headers.Authorization = AuthenticationHeaderValue.Parse(token);
             }
@@ -71,7 +72,7 @@ namespace Autodesk.Forge.Core
                 throw new ArgumentNullException(ForgeConfiguration.ScopeKey, "The incoming HttpRequestMessage does not have a scope property. Use request.Properties.Add(ForgeConfiguration.ScopeKey, <scopes>)");
             }
         }
-        protected virtual async Task<string> Get2LeggedTokenAsync(string scope, CancellationToken cancellationToken)
+        protected virtual async Task<(string, TimeSpan)> Get2LeggedTokenAsync(string scope, CancellationToken cancellationToken)
         {
             using (var request = new HttpRequestMessage())
             {
@@ -98,7 +99,7 @@ namespace Autodesk.Forge.Core
                 response.EnsureSuccessStatusCode();
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var resValues = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
-                return resValues["token_type"] + " " + resValues["access_token"];
+                return (resValues["token_type"] + " " + resValues["access_token"], TimeSpan.FromSeconds(double.Parse(resValues["expires_in"])));
             }
         }
     }

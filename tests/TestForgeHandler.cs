@@ -62,7 +62,7 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().SetupSequence(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage()
                 {
-                    Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", "blablabla" } })),
+                    Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", "blablabla" }, { "expires_in", "3" } })),
                     StatusCode = System.Net.HttpStatusCode.OK
                 })
                 .ReturnsAsync(new HttpResponseMessage()
@@ -95,7 +95,7 @@ namespace Autodesk.Forge.Core.Test
                 :base(configuration)
             {
             }
-            public new Dictionary<string, string> TokenCache { get { return base.TokenCache; } }
+            public new ITokenCache TokenCache { get { return base.TokenCache; } }
         }
         [Fact]
         public async void TestRetryOnceOnAuthenticationFailure()
@@ -119,7 +119,7 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()))
                  .ReturnsAsync(new HttpResponseMessage()
                  {
-                     Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", newToken } })),
+                     Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", newToken }, { "expires_in", "3" } })),
                      StatusCode = System.Net.HttpStatusCode.OK
                  });
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri && r.Headers.Authorization.Parameter == newToken), It.IsAny<CancellationToken>()))
@@ -134,10 +134,91 @@ namespace Autodesk.Forge.Core.Test
                 };
 
             var scope = "somescope";
-            fh.TokenCache[scope] = $"Bearer {cachedToken}";
+
+            //we have token but it bad for some reason (maybe revoked)
+            fh.TokenCache.Add(scope, $"Bearer {cachedToken}", TimeSpan.FromSeconds(10));
 
             var invoker = new HttpMessageInvoker(fh);
             
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
+            await invoker.SendAsync(req, CancellationToken.None);
+
+            sink.VerifyAll();
+        }
+
+        [Fact]
+        public async void TestRefreshExpiredToken()
+        {
+            var newToken = "newToken";
+            var cachedToken = "cachedToken";
+            var req = new HttpRequestMessage();
+            req.RequestUri = new Uri("http://example.com");
+            var config = new ForgeConfiguration()
+            {
+                ClientId = "ClientId",
+                ClientSecret = "ClientSecret"
+            };
+            var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()))
+                 .ReturnsAsync(new HttpResponseMessage()
+                 {
+                     Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", newToken }, { "expires_in", "3" } })),
+                     StatusCode = System.Net.HttpStatusCode.OK
+                 });
+            sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri && r.Headers.Authorization.Parameter == newToken), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK
+                });
+
+            var fh = new TweakableForgeHandler(Options.Create(config))
+            {
+                InnerHandler = sink.Object
+            };
+
+            var scope = "somescope";
+
+            //we have token but it is expired already
+            fh.TokenCache.Add(scope, $"Bearer {cachedToken}", TimeSpan.FromSeconds(0));
+
+            var invoker = new HttpMessageInvoker(fh);
+
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
+            await invoker.SendAsync(req, CancellationToken.None);
+
+            sink.VerifyAll();
+        }
+
+        [Fact]
+        public async void TestUseGoodToken()
+        {
+            var cachedToken = "cachedToken";
+            var req = new HttpRequestMessage();
+            req.RequestUri = new Uri("http://example.com");
+            var config = new ForgeConfiguration()
+            {
+                ClientId = "ClientId",
+                ClientSecret = "ClientSecret"
+            };
+            var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri && r.Headers.Authorization.Parameter == cachedToken), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK
+                });
+
+            var fh = new TweakableForgeHandler(Options.Create(config))
+            {
+                InnerHandler = sink.Object
+            };
+
+            var scope = "somescope";
+
+            //we have token but it is expired already
+            fh.TokenCache.Add(scope, $"Bearer {cachedToken}", TimeSpan.FromSeconds(10));
+
+            var invoker = new HttpMessageInvoker(fh);
+
             req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             await invoker.SendAsync(req, CancellationToken.None);
 
