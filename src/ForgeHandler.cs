@@ -8,32 +8,45 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Autodesk.Forge.Core
 {
     public class ForgeHandler : DelegatingHandler
     {
+        private readonly Random rand = new Random();
+        private readonly IAsyncPolicy<HttpResponseMessage> resiliencyPolicies;
         protected readonly IOptions<ForgeConfiguration> configuration;
-
-        protected ITokenCache TokenCache { get; private set; } = new TokenCache();
+        protected ITokenCache TokenCache { get; private set; }
 
         public ForgeHandler(IOptions<ForgeConfiguration> configuration)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.TokenCache = new TokenCache();
+            this.resiliencyPolicies = GetResiliencyPolicies();
         }
 
+        
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (request.RequestUri == null)
             {
                 throw new ArgumentNullException($"{nameof(HttpRequestMessage)}.{nameof(HttpRequestMessage.RequestUri)}");
             }
-            await RefreshTokenAsync(request, false, cancellationToken);
-            return await GetResiliencyPolicy().WrapAsync(GetTokenRefreshPolicy()).ExecuteAsync(async () => await base.SendAsync(request, cancellationToken));
+
+            var policies = this.resiliencyPolicies;
+            if (request.Headers.Authorization == null)
+            {
+                // no authorization header so we manage authorization
+                await RefreshTokenAsync(request, false, cancellationToken);
+                // add a retry policy so that we refresh invalid tokens
+                policies = policies.WrapAsync(GetTokenRefreshPolicy());
+            }
+            return await policies.ExecuteAsync(async () => await base.SendAsync(request, cancellationToken));
         }
         protected virtual IAsyncPolicy<HttpResponseMessage> GetTokenRefreshPolicy()
         {
-            // A policy that attempt to retry exactly once when 401 error is received after obtaining a new token
+            // A policy that attempts to retry exactly once when 401 error is received after obtaining a new token
             return Policy
                 .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.Unauthorized)
                 .RetryAsync(
@@ -41,19 +54,53 @@ namespace Autodesk.Forge.Core
                     onRetryAsync: async (outcome, retryNumber, context) => await RefreshTokenAsync(outcome.Result.RequestMessage, true, CancellationToken.None)
                 );
         }
-        protected virtual IAsyncPolicy<HttpResponseMessage> GetResiliencyPolicy()
+        
+        protected virtual IAsyncPolicy<HttpResponseMessage> GetResiliencyPolicies()
         {
-            // We probably want to do something more sophisticated here in the long run
-            // e.g. add a circuit breaker, jitter to the retry, other status codes to retry etc.
-            return Policy
-                .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.GatewayTimeout)
-                .WaitAndRetryAsync(new[]
+            // Retry when HttpRequestException is thrown (low level network error) or 
+            // the server returns an error code that we think is transient
+            var errors = Policy
+                .Handle<HttpRequestException>()
+                .OrResult<HttpResponseMessage>(response =>
                 {
-                    TimeSpan.FromSeconds(5),
-                    TimeSpan.FromSeconds(15),
-                    TimeSpan.FromSeconds(30)
+                    int[] retriable = {
+                        (int)HttpStatusCode.RequestTimeout, // 408
+                        429, //too many requests
+                        (int)HttpStatusCode.BadGateway, // 502
+                        (int)HttpStatusCode.ServiceUnavailable, // 503
+                        (int)HttpStatusCode.GatewayTimeout // 504
+                        };
+                    return retriable.Contains((int)response.StatusCode);
                 });
+
+            // retry 3 times with exponential backoff and jitter while respecting the RetryAfter header from server
+            var retry = errors.WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: (retryCount, response, context) =>
+                {
+                    // First see how long the server wants us to wait
+                    var serverWait = response.Result?.Headers.RetryAfter?.Delta;
+                    // Calculate how long we want to wait in milliseconds
+                    var clientWait = (double)rand.Next(500, Math.Min(20000, (int)Math.Pow(2, retryCount) * 500));
+                    var wait = clientWait;
+                    if (serverWait.HasValue)
+                    {
+                        wait = serverWait.Value.TotalMilliseconds + clientWait;
+                    }
+                    return TimeSpan.FromMilliseconds(wait);
+                },
+                onRetryAsync: (response, sleepTime, retryCount, content) => Task.CompletedTask);
+
+            // break circuit after 5 errors and keep it broken for 10 seconds
+            var breaker = errors.CircuitBreakerAsync(5, TimeSpan.FromSeconds(10));
+
+            // timeout after 10 seconds
+            var timeout = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10), Polly.Timeout.TimeoutStrategy.Pessimistic);
+
+            // ordering is important here!
+            return Policy.WrapAsync<HttpResponseMessage>(retry, breaker, timeout);
         }
+
         protected virtual async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
         {
             if (request.Properties.TryGetValue(ForgeConfiguration.ScopeKey, out var obj) && obj != null && obj is string)
@@ -94,7 +141,7 @@ namespace Autodesk.Forge.Core
                 request.RequestUri = config.AuthenticationAddress;
                 request.Method = HttpMethod.Post;
 
-                var response = await GetResiliencyPolicy().ExecuteAsync(async () => await base.SendAsync(request, cancellationToken));
+                var response = await this.resiliencyPolicies.ExecuteAsync(async () => await base.SendAsync(request, cancellationToken));
 
                 response.EnsureSuccessStatusCode();
                 var responseContent = await response.Content.ReadAsStringAsync();
