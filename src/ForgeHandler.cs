@@ -35,7 +35,8 @@ namespace Autodesk.Forge.Core
             }
 
             var policies = this.resiliencyPolicies;
-            if (request.Headers.Authorization == null)
+            if (request.Headers.Authorization == null &&
+                request.Properties.ContainsKey(ForgeConfiguration.ScopeKey))
             {
                 // no authorization header so we manage authorization
                 await RefreshTokenAsync(request, false, cancellationToken);
@@ -103,7 +104,7 @@ namespace Autodesk.Forge.Core
 
         protected virtual async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
         {
-            if (request.Properties.TryGetValue(ForgeConfiguration.ScopeKey, out var obj) && obj != null && obj is string)
+            if (request.Properties.TryGetValue(ForgeConfiguration.ScopeKey, out var obj))
             {
                 var scope = (string)obj;
                 if (ignoreCache || !TokenCache.TryGetValue(scope, out var token))
@@ -113,10 +114,6 @@ namespace Autodesk.Forge.Core
                     TokenCache.Add(scope, token, expiry);
                 }
                 request.Headers.Authorization = AuthenticationHeaderValue.Parse(token);
-            }
-            else
-            {
-                throw new ArgumentNullException(ForgeConfiguration.ScopeKey, "The incoming HttpRequestMessage does not have a scope property. Use request.Properties.Add(ForgeConfiguration.ScopeKey, <scopes>)");
             }
         }
         protected virtual async Task<(string, TimeSpan)> Get2LeggedTokenAsync(string scope, CancellationToken cancellationToken)

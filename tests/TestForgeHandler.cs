@@ -38,15 +38,6 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestNoScopeThrows()
-        {
-            var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(new ForgeConfiguration())));
-            var req = new HttpRequestMessage();
-            req.RequestUri = new Uri("http://example.com");
-            await Assert.ThrowsAsync<ArgumentNullException>(ForgeConfiguration.ScopeKey, () => fh.SendAsync(req, CancellationToken.None));
-        }
-
-        [Fact]
         public async void TestNoClientIdThrows()
         {
             var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(new ForgeConfiguration())));
