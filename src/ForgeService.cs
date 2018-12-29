@@ -25,8 +25,7 @@ namespace Autodesk.Forge.Core
                 .Build();
 
             var services = new ServiceCollection();
-            services.ConfigureForge(configuration);
-            services.AddForgeService();
+            services.AddForgeService(configuration);
             var serviceProvider = services.BuildServiceProvider();
 
             return serviceProvider.GetRequiredService<ForgeService>();

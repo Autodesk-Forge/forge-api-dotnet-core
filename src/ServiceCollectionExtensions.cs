@@ -7,13 +7,18 @@ namespace Autodesk.Forge.Core
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection ConfigureForge(this IServiceCollection services, IConfiguration configuration)
+        /// <summary>
+        /// Configures ForgeConfiguration with the given Configuration. It looks for key named "Forge" and uses
+        /// the values underneath.
+        /// Also adds ForgeService as a typed HttpClient with ForgeHandler as its MessageHandler.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IHttpClientBuilder AddForgeService(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
-            return services.Configure<ForgeConfiguration>(configuration.GetSection("Forge"));
-        }
-        public static IHttpClientBuilder AddForgeService(this IServiceCollection services)
-        {
+            services.Configure<ForgeConfiguration>(configuration.GetSection("Forge"));
             services.AddTransient<ForgeHandler>();
             return services.AddHttpClient<ForgeService>()
                 .AddHttpMessageHandler<ForgeHandler>();
