@@ -76,8 +76,8 @@ namespace Autodesk.Forge.Core
             // On the other hand, it also states that 'path' MUST start with '/'. The leading '/' must be removed to get the desired behavior.
             relativePath = relativePath.TrimStart('/');
 
-            // replace path parameters
-            relativePath = Regex.Replace(relativePath, @"\{(?<key>\w+)\}", m => HttpUtility.UrlEncode(ParameterToString(routeParameters[m.Groups["key"].Value])));
+            // replace path parameters, note that + only needs to be encoded in the query string not in the path.
+            relativePath = Regex.Replace(relativePath, @"\{(?<key>\w+)\}", m => HttpUtility.UrlEncode(ParameterToString(routeParameters[m.Groups["key"].Value])).Replace("%2b","+"));
 
             // add query parameters
             var query = new StringBuilder();
@@ -85,7 +85,7 @@ namespace Autodesk.Forge.Core
             {
                 if (kv.Value != null)
                 {
-                    query.Append($"{HttpUtility.UrlEncode(kv.Key)}={HttpUtility.UrlEncode(ParameterToString(kv.Value))};");
+                    query.Append($"{HttpUtility.UrlEncode(kv.Key)}={HttpUtility.UrlEncode(ParameterToString(kv.Value))}&");
                 }
             }
 

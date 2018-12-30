@@ -72,7 +72,7 @@ namespace Autodesk.Forge.Core.Test
                     { "count", "3" }
                 }
                 );
-            Assert.Equal("test/bar/stuff?page=blabla;count=3;", uri.OriginalString);
+            Assert.Equal("test/bar/stuff?page=blabla&count=3&", uri.OriginalString);
         }
     }
 }
