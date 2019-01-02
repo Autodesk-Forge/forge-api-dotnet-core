@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors></Authors>
+    <Authors>Autodesk Forge Team</Authors>
     <Company>Autodesk</Company>
     <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks</Description>

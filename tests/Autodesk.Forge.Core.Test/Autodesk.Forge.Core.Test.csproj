@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Autodesk.Forge.Core.csproj" />
+    <ProjectReference Include="..\..\src\Autodesk.Forge.Core\Autodesk.Forge.Core.csproj" />
   </ItemGroup>
 
 </Project>
