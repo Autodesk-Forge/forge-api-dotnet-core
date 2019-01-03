@@ -72,10 +72,6 @@ namespace Autodesk.Forge.Core
                 throw new ArgumentNullException(nameof(queryParameters));
             }
 
-            // We have some interesting contradiction in the Swagger 2.0 spec: on one hand in states that 'path' is combined with 'basePath' to form the URL of the resource.
-            // On the other hand, it also states that 'path' MUST start with '/'. The leading '/' must be removed to get the desired behavior.
-            relativePath = relativePath.TrimStart('/');
-
             // replace path parameters, note that + only needs to be encoded in the query string not in the path.
             relativePath = Regex.Replace(relativePath, @"\{(?<key>\w+)\}", m => HttpUtility.UrlEncode(ParameterToString(routeParameters[m.Groups["key"].Value])).Replace("%2b","+"));
 
