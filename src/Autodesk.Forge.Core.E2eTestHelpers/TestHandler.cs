@@ -10,7 +10,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
     {
         private string basePath;
         private readonly AsyncLocal<ITestScope> testScope = new AsyncLocal<ITestScope>();
-        public IDisposable StartScope(string name)
+        public IDisposable StartTestScope(string name)
         {
             TestScope scope;
             var path = Path.Combine(this.basePath, $"{name}.json");
@@ -36,6 +36,10 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
         }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            if (this.testScope.Value == null)
+            {
+                throw new InvalidOperationException("TestScope is null. Did you forget to call StartTestScope?");
+            }
             return this.testScope.Value.SendAsync(new HttpMessageInvoker(InnerHandler), request, cancellationToken);
         }
         }
