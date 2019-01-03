@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,7 +15,9 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
         {
             "Cache-Control", "Content-Security-Policy", "Date", "Pragma", "Set-Cookie",
             "X-Frame-Options", "Connection", "Expires", "Via", "x-amz-apigw-id",
-            "X-Amz-Cf-Id", "x-amzn-RequestId", "X-Amzn-Trace-Id", "X-Cache"
+            "X-Amz-Cf-Id", "x-amzn-RequestId", "X-Amzn-Trace-Id", "X-Cache",
+            "x-amz-id-2", "x-amz-request-id", "ETag", 
+            "Content-Length" //this is calculated so no point checking
         };
 
         public override bool CanConvert(Type objectType)
@@ -25,14 +28,10 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
         {
             if (jsonContent == null)
             {
-                return new StringContent(string.Empty);
+                return null;
             }
             var content = new StringContent(jsonContent["Body"].ToString());
-            content.Headers.Clear();
-            foreach (var header in ((JObject)jsonContent["Headers"]).Properties())
-            {
-                content.Headers.TryAddWithoutValidation(header.Name, header.Value.Value<string>());
-            }
+            DeserializeHeaders(content.Headers, jsonContent);
             return content;
         }
 
@@ -44,7 +43,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
             {
                 foreach (var header in headersToken.Properties())
                 {
-                    headers.Add(header.Name, header.Value.Value<string>());
+                    headers.TryAddWithoutValidation(header.Name, header.Value.Value<string>());
                 }
             }
         }
@@ -78,6 +77,16 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
                     if (h.Key == "Authorization")
                     {
                         jsonHeaders.Add(h.Key, "***");
+                    }
+                    else if (h.Key == "Content-Type")
+                    {
+                        var contentType = string.Join(";", h.Value);
+                        var index = contentType.IndexOf(';');
+                        if (index >= 0)
+                        {
+                            contentType = contentType.Substring(0, contentType.IndexOf(';'));
+                        }
+                        jsonHeaders.Add(h.Key, string.Join(";", contentType));
                     }
                     else
                     {
@@ -118,6 +127,10 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
                 {
 
                 }
+                else if (mediaType == "multipart/form-data")
+                {
+                    jsonContent.Add("Body", "Data not recorded");
+                }
                 else
                 {
                     throw new JsonSerializationException("Unknown media type.");
@@ -132,7 +145,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
                 container.Add("Content", jsonContent);
             }
         }
-        private static JObject SerializeRequest(HttpRequestMessage msg)
+        public static JObject SerializeRequest(HttpRequestMessage msg)
         {
             var json = new JObject();
             json.Add("Method", msg.Method.Method);
@@ -141,6 +154,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
             SerializeContent(json, msg.Content);
             return json;
         }
+        
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var json = new JObject();
