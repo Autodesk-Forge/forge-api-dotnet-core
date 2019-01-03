@@ -56,5 +56,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
                 }
             }
         }
+
+        public override bool IsRecording => false;
     }
 }

@@ -9,8 +9,8 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
     public class TestHandler : DelegatingHandler
     {
         private string basePath;
-        private readonly AsyncLocal<ITestScope> testScope = new AsyncLocal<ITestScope>();
-        public IDisposable StartTestScope(string name)
+        private readonly AsyncLocal<IMessageProcessor> testScope = new AsyncLocal<IMessageProcessor>();
+        public ITestScope StartTestScope(string name)
         {
             TestScope scope;
             var path = Path.Combine(this.basePath, $"{name}.json");
@@ -26,7 +26,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
             return scope;
         }
         public TestHandler(string basePath)
-            :base(new HttpClientHandler())
+            : base(new HttpClientHandler())
         {
             this.basePath = basePath;
             if (!Directory.Exists(basePath))
@@ -42,5 +42,5 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
             }
             return this.testScope.Value.SendAsync(new HttpMessageInvoker(InnerHandler), request, cancellationToken);
         }
-        }
     }
+}

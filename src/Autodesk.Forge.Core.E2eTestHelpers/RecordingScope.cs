@@ -38,5 +38,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
             var json = JsonConvert.SerializeObject(this.records, Formatting.Indented);
             File.WriteAllText(base.path, json);
         }
+
+        public override bool IsRecording => true;
     }
 }

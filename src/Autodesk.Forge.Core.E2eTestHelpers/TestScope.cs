@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 
 namespace Autodesk.Forge.Core.E2eTestHelpers
 {
-    public interface ITestScope
+    public interface IMessageProcessor
     {
         Task<HttpResponseMessage> SendAsync(HttpMessageInvoker inner, HttpRequestMessage request, CancellationToken cancellationToken);
     }
 
-    internal abstract class TestScope : ITestScope, IDisposable
+    public interface ITestScope : IDisposable
+    {
+        bool IsRecording { get; }
+    }
+
+    internal abstract class TestScope : IMessageProcessor, ITestScope
     {
         private HttpResponseMessage authResponse;
         protected string path;
@@ -60,6 +65,8 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
         {
             authResponse?.Dispose();
         }
-        
+
+        public abstract bool IsRecording { get; }
+
     }
 }
