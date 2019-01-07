@@ -8,7 +8,7 @@
     <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks e2e tests</Description>
     <Copyright>Autodesk Inc.</Copyright>
-    <Version>1.0.0-beta2</Version>
+    <Version>1.0.0-beta1</Version>
   </PropertyGroup>
 
   <ItemGroup>
