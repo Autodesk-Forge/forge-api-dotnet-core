@@ -19,6 +19,7 @@ namespace Autodesk.Forge.Core.Test
         public void TestValuesFromEnvironment()
         {
             Environment.SetEnvironmentVariable("Forge__ClientId", "bla");
+            Environment.SetEnvironmentVariable("Forge__ClientSecret", "blabla");
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();
@@ -29,6 +30,25 @@ namespace Autodesk.Forge.Core.Test
 
             var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>();
             Assert.Equal("bla", config.Value.ClientId);
+            Assert.Equal("blabla", config.Value.ClientSecret);
+        }
+
+        [Fact]
+        public void TestValuesFromLegacyEnvironment()
+        {
+            Environment.SetEnvironmentVariable("Forge_CLIENT_ID", "bla");
+            Environment.SetEnvironmentVariable("Forge_CLIENT_SECRET", "blabla");
+            var configuration = new ConfigurationBuilder()
+                .AddLegacySampleEnvironmentVariables()
+                .Build();
+
+            var services = new ServiceCollection();
+            services.AddForgeService(configuration);
+            var serviceProvider = services.BuildServiceProvider();
+
+            var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>();
+            Assert.Equal("bla", config.Value.ClientId);
+            Assert.Equal("blabla", config.Value.ClientSecret);
         }
     }
 }
