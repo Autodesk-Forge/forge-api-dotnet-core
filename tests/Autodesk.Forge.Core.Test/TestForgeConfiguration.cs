@@ -39,7 +39,7 @@ namespace Autodesk.Forge.Core.Test
             Environment.SetEnvironmentVariable("Forge_CLIENT_ID", "bla");
             Environment.SetEnvironmentVariable("Forge_CLIENT_SECRET", "blabla");
             var configuration = new ConfigurationBuilder()
-                .AddLegacySampleEnvironmentVariables()
+                .AddForgeAlternativeEnvironmentVariables()
                 .Build();
 
             var services = new ServiceCollection();

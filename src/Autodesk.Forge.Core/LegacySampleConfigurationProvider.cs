@@ -6,24 +6,24 @@ using System.Threading.Tasks;
 
 namespace Autodesk.Forge.Core
 {
-    public static class LegacySampleConfigurationExtensions
+    public static class ForgeAlternativeConfigurationExtensions
     {
-        public static IConfigurationBuilder AddLegacySampleEnvironmentVariables(this IConfigurationBuilder configurationBuilder)
+        public static IConfigurationBuilder AddForgeAlternativeEnvironmentVariables(this IConfigurationBuilder configurationBuilder)
         {
-            configurationBuilder.Add(new LegacySampleConfigurationSource());
+            configurationBuilder.Add(new ForgeAlternativeConfigurationSource());
             return configurationBuilder;
         }
     }
 
-    public class LegacySampleConfigurationSource : IConfigurationSource
+    public class ForgeAlternativeConfigurationSource : IConfigurationSource
     {
         public IConfigurationProvider Build(IConfigurationBuilder builder)
         {
-            return new LegacySampleConfigurationProvider();
+            return new ForgeAlternativeConfigurationProvider();
         }
     }
 
-    public class LegacySampleConfigurationProvider : ConfigurationProvider
+    public class ForgeAlternativeConfigurationProvider : ConfigurationProvider
     {
         public override void Load()
         {
