@@ -20,7 +20,7 @@ The change log for the SDK can be found in the [changelog file](/changelog.md).
 
 ## Support
 
-Please ask questions on [StackOverflow](https://stackoverflow.com/questions/ask?tags=autodesk-forge,csharp) with tag `autodesk-designautomation` tag. If it turns out that you may have found a bug, please open an [issue](issues).
+Please ask questions on [StackOverflow](https://stackoverflow.com/questions/ask?tags=autodesk-forge,csharp) with tag `autodesk-designautomation` tag. If it turns out that you may have found a bug, please open an issue.
 
 ## Getting Started
 
