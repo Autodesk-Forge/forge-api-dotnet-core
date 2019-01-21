@@ -12,11 +12,15 @@
 ### Dependencies
 
 - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) 12.0.1 or later
-- [Newtonsoft.Json](https://github.com/App-vNext/Polly) 6.1.2 or later
+- [Polly](https://github.com/App-vNext/Polly) 6.1.2 or later
 
 ### Changelog
 
 The change log for the SDK can be found in the [changelog file](/changelog.md).
+
+## Support
+
+Please ask questions on [StackOverflow](https://stackoverflow.com/questions/ask?tags=autodesk-forge,csharp) with tag `autodesk-designautomation` tag. If it turns out that you may have found a bug, please open an [issue](issues).
 
 ## Getting Started
 
