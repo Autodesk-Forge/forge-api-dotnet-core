@@ -9,6 +9,10 @@
     <Description>Shared code for Forge client sdks</Description>
     <Copyright>Autodesk Inc.</Copyright>
     <Version>1.0.0-beta1</Version>
+	<licenseUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core/blob/master/LICENSE</licenseUrl>
+	<projectUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core</projectUrl>
+	<iconUrl>http://developer.static.autodesk.com/images/logo_forge-2-line.png</iconUrl>
+	<releaseNotes>For full release notes see https://github.com/Autodesk-Forge/forge-api-dotnet-core/blob/master/CHANGELOG.md</releaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
