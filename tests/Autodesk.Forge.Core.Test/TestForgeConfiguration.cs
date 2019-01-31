@@ -13,6 +13,7 @@ namespace Autodesk.Forge.Core.Test
         {
             var config = new ForgeConfiguration();
             Assert.NotNull(config.AuthenticationAddress);
+            Assert.True(config.Timeout > 0);
         }
 
         [Fact]
