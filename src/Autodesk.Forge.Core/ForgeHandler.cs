@@ -112,8 +112,9 @@ namespace Autodesk.Forge.Core
             // break circuit after 5 errors and keep it broken for 10 seconds
             var breaker = errors.CircuitBreakerAsync(5, TimeSpan.FromSeconds(10));
 
-            // timeout after 10 seconds
-            var timeout = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10), Polly.Timeout.TimeoutStrategy.Pessimistic);
+            // timeout handler
+            var timeoutValue = TimeSpan.FromSeconds(this.configuration.Value.Timeout);
+            var timeout = Policy.TimeoutAsync<HttpResponseMessage>(timeoutValue, Polly.Timeout.TimeoutStrategy.Pessimistic);
 
             // ordering is important here!
             return Policy.WrapAsync<HttpResponseMessage>(retry, breaker, timeout);
