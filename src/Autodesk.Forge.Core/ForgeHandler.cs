@@ -31,6 +31,8 @@ namespace Autodesk.Forge.Core
 {
     public class ForgeHandler : DelegatingHandler
     {
+        private const int ForgeGatewayTimeoutSeconds = 10;
+
         private readonly Random rand = new Random();
         private readonly IAsyncPolicy<HttpResponseMessage> resiliencyPolicies;
         protected readonly IOptions<ForgeConfiguration> configuration;
@@ -43,7 +45,6 @@ namespace Autodesk.Forge.Core
             this.resiliencyPolicies = GetResiliencyPolicies();
         }
 
-        
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (request.RequestUri == null)
@@ -51,7 +52,19 @@ namespace Autodesk.Forge.Core
                 throw new ArgumentNullException($"{nameof(HttpRequestMessage)}.{nameof(HttpRequestMessage.RequestUri)}");
             }
 
-            var policies = this.resiliencyPolicies;
+            IAsyncPolicy<HttpResponseMessage> policies;
+
+            // check if request wants custom timeout
+            if (request.Properties.TryGetValue(ForgeConfiguration.TimeoutKey, out var timeoutValue))
+            {
+                policies = GetResiliencyPolicies((int)timeoutValue);
+            }
+            else
+            {
+                policies = this.resiliencyPolicies;
+            }
+
+
             if (request.Headers.Authorization == null &&
                 request.Properties.ContainsKey(ForgeConfiguration.ScopeKey))
             {
@@ -62,6 +75,7 @@ namespace Autodesk.Forge.Core
             }
             return await policies.ExecuteAsync(async () => await base.SendAsync(request, cancellationToken));
         }
+
         protected virtual IAsyncPolicy<HttpResponseMessage> GetTokenRefreshPolicy()
         {
             // A policy that attempts to retry exactly once when 401 error is received after obtaining a new token
@@ -72,8 +86,8 @@ namespace Autodesk.Forge.Core
                     onRetryAsync: async (outcome, retryNumber, context) => await RefreshTokenAsync(outcome.Result.RequestMessage, true, CancellationToken.None)
                 );
         }
-        
-        protected virtual IAsyncPolicy<HttpResponseMessage> GetResiliencyPolicies()
+
+        protected virtual IAsyncPolicy<HttpResponseMessage> GetResiliencyPolicies(int timeoutSeconds = ForgeGatewayTimeoutSeconds)
         {
             // Retry when HttpRequestException is thrown (low level network error) or 
             // the server returns an error code that we think is transient
@@ -113,7 +127,7 @@ namespace Autodesk.Forge.Core
             var breaker = errors.CircuitBreakerAsync(5, TimeSpan.FromSeconds(10));
 
             // timeout handler
-            var timeoutValue = TimeSpan.FromSeconds(this.configuration.Value.Timeout);
+            var timeoutValue = TimeSpan.FromSeconds(timeoutSeconds);
             var timeout = Policy.TimeoutAsync<HttpResponseMessage>(timeoutValue, Polly.Timeout.TimeoutStrategy.Pessimistic);
 
             // ordering is important here!

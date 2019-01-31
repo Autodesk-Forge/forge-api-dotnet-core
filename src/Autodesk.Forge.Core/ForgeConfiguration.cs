@@ -22,6 +22,8 @@ namespace Autodesk.Forge.Core
     public class ForgeConfiguration
     {
         public const string ScopeKey = "Autodesk.Forge.Scope";
+        public const string TimeoutKey = "Autodesk.Forge.Timeout";
+
         public ForgeConfiguration()
         {
             this.AuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v1/authenticate");
@@ -29,11 +31,5 @@ namespace Autodesk.Forge.Core
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
         public Uri AuthenticationAddress { get; set; }
-
-        /// <summary>
-        /// Timeout in seconds.
-        /// By default - 10 seconds.
-        /// </summary>
-        public int Timeout { get; set; } = 10;
     }
 }
