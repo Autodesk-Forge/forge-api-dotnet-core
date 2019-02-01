@@ -3,12 +3,11 @@ using Moq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 using Moq.Protected;
-using Xunit.Abstractions;
 
 namespace Autodesk.Forge.Core.Test
 {
@@ -25,7 +24,7 @@ namespace Autodesk.Forge.Core.Test
     public class TestForgeHandler1
     {
         [Fact]
-        public void TestNullConfigruationThrows()
+        public void TestNullConfigurationThrows()
         {
             Assert.Throws<ArgumentNullException>(() => new ForgeHandler(null));
         }
@@ -387,4 +386,103 @@ namespace Autodesk.Forge.Core.Test
             sink.VerifyAll();
         }
     }
+
+    /// <summary>
+    /// Unit tests for custom timeout.
+    /// </summary>
+    public class TestCustomTimeout
+    {
+        private const string CachedToken = "cachedToken";
+        private const string Scope = "somescope";
+
+        private readonly ForgeConfiguration _forgeConfig = new ForgeConfiguration()
+        {
+            ClientId = "ClientId",
+            ClientSecret = "ClientSecret"
+        };
+
+        [Fact]
+        public async void TestTriggeredTimeout()
+        {
+            var (req, sink, invoker) = Bind(allowedTimeout: 2, actualResponseTimeout: 5);
+            await Assert.ThrowsAsync<Polly.Timeout.TimeoutRejectedException>(async () => await invoker.SendAsync(req, new CancellationToken()));
+
+            sink.VerifyAll();
+        }
+
+        [Fact]
+        public async void TestNoTimeout()
+        {
+            var (req, sink, invoker) = Bind(allowedTimeout: 5, actualResponseTimeout: 2);
+
+            var response = await invoker.SendAsync(req, new CancellationToken());
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+
+            sink.VerifyAll();
+        }
+
+        /// <summary>
+        /// Create all required components for custom timeout validation.
+        /// </summary>
+        /// <param name="allowedTimeout">Allowed timeout in seconds.</param>
+        /// <param name="actualResponseTimeout">Actual response timeout.</param>
+        private (HttpRequestMessage req, Mock<HttpMessageHandler> sink, HttpMessageInvoker invoker) Bind(int allowedTimeout, int actualResponseTimeout)
+        {
+            var req = RequestWithTimeout(allowedTimeout);
+            var sink = MakeSink(req, actualResponseTimeout);
+
+            var fh = new TweakableForgeHandler(Options.Create(_forgeConfig))
+            {
+                InnerHandler = sink.Object
+            };
+            fh.TokenCache.Add(Scope, $"Bearer {CachedToken}", TimeSpan.FromSeconds(10));
+
+            var invoker = new HttpMessageInvoker(fh);
+            return (req, sink, invoker);
+        }
+
+        /// <summary>
+        /// Create mocked HTTP message handler, who emulates timeout.
+        /// </summary>
+        /// <param name="req">Expected HTTP request.</param>
+        /// <param name="responseTimeout">Response timeout in seconds.</param>
+        private static Mock<HttpMessageHandler> MakeSink(HttpRequestMessage req, int responseTimeout)
+        {
+            var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            sink.Protected()
+                .As<HttpMessageInvoker>()
+                .Setup(o => o.SendAsync(It.Is(EnsureRequest(req)), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HttpResponseMessage
+                    {
+                        StatusCode = System.Net.HttpStatusCode.OK
+                    },
+                    TimeSpan.FromSeconds(responseTimeout));
+
+            return sink;
+        }
+
+        private static Expression<Func<HttpRequestMessage, bool>> EnsureRequest(HttpRequestMessage expected)
+        {
+            return (HttpRequestMessage actual) => (actual.RequestUri == expected.RequestUri) &&
+                                                  (actual.Headers.Authorization.Parameter == CachedToken);
+        }
+
+        /// <summary>
+        /// Create HTTP request message with custom timeout.
+        /// </summary>
+        /// <param name="timeout">Timeout in seconds.</param>
+        private static HttpRequestMessage RequestWithTimeout(int timeout)
+        {
+            return new HttpRequestMessage
+                    {
+                        RequestUri = new Uri("http://example.com"),
+                        Properties =
+                        {
+                            { ForgeConfiguration.ScopeKey, Scope },
+                            { ForgeConfiguration.TimeoutKey, timeout }
+                        }
+                    };
+        }
+    }
+
 }
