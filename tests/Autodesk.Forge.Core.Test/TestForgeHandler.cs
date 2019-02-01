@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 using Moq.Protected;
 
@@ -395,17 +396,17 @@ namespace Autodesk.Forge.Core.Test
         private const string CachedToken = "cachedToken";
         private const string Scope = "somescope";
 
-        private readonly ForgeConfiguration _forgeConfig = new ForgeConfiguration()
-        {
-            ClientId = "ClientId",
-            ClientSecret = "ClientSecret"
-        };
+        private readonly ForgeConfiguration _forgeConfig = new ForgeConfiguration
+                                                            {
+                                                                ClientId = "ClientId",
+                                                                ClientSecret = "ClientSecret"
+                                                            };
 
         [Fact]
         public async void TestTriggeredTimeout()
         {
-            var (req, sink, invoker) = Bind(allowedTimeout: 2, actualResponseTimeout: 5);
-            await Assert.ThrowsAsync<Polly.Timeout.TimeoutRejectedException>(async () => await invoker.SendAsync(req, new CancellationToken()));
+            var (sink, requestSender) = GetReady(allowedTimeout: 2, actualResponseTimeout: 5);
+            await Assert.ThrowsAsync<Polly.Timeout.TimeoutRejectedException>(async () => await requestSender());
 
             sink.VerifyAll();
         }
@@ -413,9 +414,9 @@ namespace Autodesk.Forge.Core.Test
         [Fact]
         public async void TestNoTimeout()
         {
-            var (req, sink, invoker) = Bind(allowedTimeout: 5, actualResponseTimeout: 2);
+            var (sink, requestSender) = GetReady(allowedTimeout: 5, actualResponseTimeout: 2);
 
-            var response = await invoker.SendAsync(req, new CancellationToken());
+            HttpResponseMessage response = await requestSender();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
             sink.VerifyAll();
@@ -426,7 +427,12 @@ namespace Autodesk.Forge.Core.Test
         /// </summary>
         /// <param name="allowedTimeout">Allowed timeout in seconds.</param>
         /// <param name="actualResponseTimeout">Actual response timeout.</param>
-        private (HttpRequestMessage req, Mock<HttpMessageHandler> sink, HttpMessageInvoker invoker) Bind(int allowedTimeout, int actualResponseTimeout)
+        /// <returns>
+        /// Tuple with:
+        /// * mock to validate after tests are complete.
+        /// * functor to perform mocked HTTP request/response operation.
+        /// </returns>
+        private (Mock<HttpMessageHandler> sink, Func<Task<HttpResponseMessage>> requestSender) GetReady(int allowedTimeout, int actualResponseTimeout)
         {
             var req = RequestWithTimeout(allowedTimeout);
             var sink = MakeSink(req, actualResponseTimeout);
@@ -438,7 +444,7 @@ namespace Autodesk.Forge.Core.Test
             fh.TokenCache.Add(Scope, $"Bearer {CachedToken}", TimeSpan.FromSeconds(10));
 
             var invoker = new HttpMessageInvoker(fh);
-            return (req, sink, invoker);
+            return (sink, () => invoker.SendAsync(req, new CancellationToken()));
         }
 
         /// <summary>
