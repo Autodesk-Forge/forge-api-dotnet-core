@@ -93,13 +93,13 @@ namespace Autodesk.Forge.Core
 
             // retry 3 times with exponential backoff and jitter while respecting the RetryAfter header from server
             var retry = errors.WaitAndRetryAsync(
-                retryCount: 3,
+                retryCount: 5,
                 sleepDurationProvider: (retryCount, response, context) =>
                 {
                     // First see how long the server wants us to wait
                     var serverWait = response.Result?.Headers.RetryAfter?.Delta;
                     // Calculate how long we want to wait in milliseconds
-                    var clientWait = (double)rand.Next(500, Math.Min(20000, (int)Math.Pow(2, retryCount) * 500));
+                    var clientWait = (double)rand.Next(500, (int)Math.Pow(2, retryCount) * 1000);
                     var wait = clientWait;
                     if (serverWait.HasValue)
                     {
@@ -110,7 +110,7 @@ namespace Autodesk.Forge.Core
                 onRetryAsync: (response, sleepTime, retryCount, content) => Task.CompletedTask);
 
             // break circuit after 5 errors and keep it broken for 10 seconds
-            var breaker = errors.CircuitBreakerAsync(5, TimeSpan.FromSeconds(10));
+            var breaker = errors.CircuitBreakerAsync(7, TimeSpan.FromSeconds(10));
 
             // timeout after 10 seconds
             var timeout = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10), Polly.Timeout.TimeoutStrategy.Pessimistic);
