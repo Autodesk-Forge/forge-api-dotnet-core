@@ -16,7 +16,7 @@
 
 ### Changelog
 
-The change log for the SDK can be found in the [changelog file](/changelog.md).
+The change log for the SDK can be found in the [changelog file](CHANGELOG.md).
 
 ### Contributions
 
