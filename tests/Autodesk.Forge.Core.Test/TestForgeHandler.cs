@@ -282,6 +282,8 @@ namespace Autodesk.Forge.Core.Test
             var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             sink.Protected().As<HttpMessageInvoker>().SetupSequence(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri && r.Headers.Authorization.Parameter == cachedToken), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tooManyRequests)
+                .ReturnsAsync(tooManyRequests)
+                .ReturnsAsync(tooManyRequests)
                 .ThrowsAsync(new HttpRequestException())
                 .ReturnsAsync(gatewayTimeout)
                 .ReturnsAsync(gatewayTimeout);
@@ -302,8 +304,8 @@ namespace Autodesk.Forge.Core.Test
 
             Assert.Equal(System.Net.HttpStatusCode.GatewayTimeout, resp.StatusCode);
 
-            // We retry 3 times so expect 4 calls 
-            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(4));
+            // We retry 5 times so expect 6 calls 
+            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(6));
             
             sink.VerifyAll();
         }
@@ -382,7 +384,7 @@ namespace Autodesk.Forge.Core.Test
             await Assert.ThrowsAsync<Polly.CircuitBreaker.BrokenCircuitException<HttpResponseMessage>>(async () => await invoker.SendAsync(req, CancellationToken.None));
 
             // We tolerate 5 failures before we break the circuit
-            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(5));
+            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(7));
 
             sink.VerifyAll();
         }
