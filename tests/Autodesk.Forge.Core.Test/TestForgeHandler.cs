@@ -183,6 +183,61 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
+        public async void TestRefreshExpiredTokenByOneThreadOnly()
+        {
+            var newToken = "newToken";
+            var cachedToken = "cachedToken";
+            var requestUri = new Uri("http://example.com");
+            var config = new ForgeConfiguration()
+            {
+                ClientId = "ClientId",
+                ClientSecret = "ClientSecret"
+            };
+            var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()))
+                 // some artifical delay to ensure that the other thread will attempt to enter the critical section
+                 .ReturnsAsync(new HttpResponseMessage()
+                 {
+                     Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", newToken }, { "expires_in", "3" } })),
+                     StatusCode = System.Net.HttpStatusCode.OK
+                 }, TimeSpan.FromSeconds(2)
+                 );
+            sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == requestUri && r.Headers.Authorization.Parameter == newToken), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK
+                });
+
+            var fh = new TweakableForgeHandler(Options.Create(config))
+            {
+                InnerHandler = sink.Object
+            };
+
+            var scope = "somescope";
+
+            //we have token but it is expired already
+            fh.TokenCache.Add(scope, $"Bearer {cachedToken}", TimeSpan.FromSeconds(0));
+
+            //launch 2 threads to make parallel requests
+            Func<Task> lambda = async () =>
+            {
+                var req = new HttpRequestMessage();
+                req.RequestUri = requestUri;
+                var invoker = new HttpMessageInvoker(fh);
+
+                req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
+                await invoker.SendAsync(req, CancellationToken.None);
+            };
+
+            await Task.WhenAll(lambda(), lambda());
+
+            // We expect exactly one auth call
+            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()), Times.Once());
+
+            sink.VerifyAll();
+        }
+
+        [Fact]
         public async void TestUseGoodToken()
         {
             var cachedToken = "cachedToken";

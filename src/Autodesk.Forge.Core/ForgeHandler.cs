@@ -32,6 +32,7 @@ namespace Autodesk.Forge.Core
     public class ForgeHandler : DelegatingHandler
     {
         private const int ForgeGatewayTimeoutSeconds = 10;
+        static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
         private readonly Random rand = new Random();
         private readonly IAsyncPolicy<HttpResponseMessage> resiliencyPolicies;
@@ -138,14 +139,25 @@ namespace Autodesk.Forge.Core
         {
             if (request.Properties.TryGetValue(ForgeConfiguration.ScopeKey, out var obj))
             {
-                var scope = (string)obj;
-                if (ignoreCache || !TokenCache.TryGetValue(scope, out var token))
+                // it is possible that multiple threads get here at the same time, only one of them should 
+                // attempt to refresh the token. 
+                // NOTE: We could use different semaphores for different scopes here. It is a minor optimization.
+                await semaphore.WaitAsync(cancellationToken);
+                try
                 {
-                    TimeSpan expiry;
-                    (token, expiry) = await this.Get2LeggedTokenAsync(scope, cancellationToken);
-                    TokenCache.Add(scope, token, expiry);
+                    var scope = (string)obj;
+                    if (ignoreCache || !TokenCache.TryGetValue(scope, out var token))
+                    {
+                        TimeSpan expiry;
+                        (token, expiry) = await this.Get2LeggedTokenAsync(scope, cancellationToken);
+                        TokenCache.Add(scope, token, expiry);
+                    }
+                    request.Headers.Authorization = AuthenticationHeaderValue.Parse(token);
                 }
-                request.Headers.Authorization = AuthenticationHeaderValue.Parse(token);
+                finally
+                {
+                    semaphore.Release();
+                }
             }
         }
         protected virtual async Task<(string, TimeSpan)> Get2LeggedTokenAsync(string scope, CancellationToken cancellationToken)
