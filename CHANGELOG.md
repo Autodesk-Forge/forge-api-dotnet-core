@@ -1,4 +1,13 @@
-### 1.0.0.0 (2019-01-16)
+### 1.0.0.0
 
-* Initial release
+* 1.0.0-beta4
+   * Support concurrency with `SemaphoreSlim`
+
+* 1.0.0-beta3
+   * Configurable timeout
+
+* 1.0.0-beta2
+   * Fix NuGet package settings
+
+* 1.0.0-beta1
 	* Support for `FORGE_CLIENT_ID` and `FORGE_CLIENT_SECRET` environment variables via `ForgeAlternativeConfigurationExtensions`	

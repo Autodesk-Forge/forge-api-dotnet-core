@@ -9,7 +9,7 @@
     <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks</Description>
     <Copyright>Autodesk Inc.</Copyright>
-    <Version>1.0.0-beta3</Version>
+    <Version>1.0.0-beta4</Version>
 	<AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
 	<PackageId>Autodesk.Forge.Core</PackageId>
