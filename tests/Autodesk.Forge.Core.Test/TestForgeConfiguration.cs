@@ -36,8 +36,8 @@ namespace Autodesk.Forge.Core.Test
         [Fact]
         public void TestValuesFromLegacyEnvironment()
         {
-            Environment.SetEnvironmentVariable("Forge_CLIENT_ID", "bla");
-            Environment.SetEnvironmentVariable("Forge_CLIENT_SECRET", "blabla");
+            Environment.SetEnvironmentVariable("FORGE_CLIENT_ID", "bla");
+            Environment.SetEnvironmentVariable("FORGE_CLIENT_SECRET", "blabla");
             var configuration = new ConfigurationBuilder()
                 .AddForgeAlternativeEnvironmentVariables()
                 .Build();
