@@ -1,0 +1,12 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Push the nuget package that this project builds to nuget.org
+  Ignore exit code and send all output to the custom regular expression that ignores errors that arise when we try to push the same
+  package twice. The user is expected to update the package version if they really want to push a new version of the package.
+  -->
+  <Target Name="Push" DependsOnTargets="Pack">
+    <Exec Command="dotnet nuget push @(NuGetPackOutput->WithMetadataValue('Extension','.nupkg')) -k=$(NugetApiKey) -s nuget.org"  
+          IgnoreStandardErrorWarningFormat="true"
+          IgnoreExitCode="true"
+          CustomErrorRegularExpression="error:(?!.*(: 409))"/>
+  </Target>
+</Project>

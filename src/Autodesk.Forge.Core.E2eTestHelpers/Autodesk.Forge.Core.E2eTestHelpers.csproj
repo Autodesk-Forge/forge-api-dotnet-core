@@ -19,4 +19,6 @@
   <PropertyGroup>
     <IsTestProject>false</IsTestProject>
   </PropertyGroup>
+
+  <Import Project="../../nuget.targets"/>
 </Project>
