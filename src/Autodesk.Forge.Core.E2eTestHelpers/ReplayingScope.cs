@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -57,21 +58,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
             Assert.Equal(recorded.RequestUri, incoming.RequestUri);
             var jRecorded = HttpResponeMessageConverter.SerializeRequest(recorded);
             var jIncoming = HttpResponeMessageConverter.SerializeRequest(incoming);
-            Assert.Equal(jRecorded["Headers"]?.ToString(), jIncoming["Headers"]?.ToString());
-            Assert.Equal(jRecorded["Content"] == null, jIncoming["Content"] == null);
-            if (jRecorded["Content"] != null)
-            {
-                Assert.Equal(jRecorded["Content"]["Headers"] == null, jIncoming["Content"]["Headers"] == null);
-                if (jRecorded["Content"]["Headers"] != null)
-                {
-                    Assert.Equal(jRecorded["Content"]["Headers"].ToString(), jIncoming["Content"]["Headers"].ToString());
-                }
-                Assert.Equal(jRecorded["Content"]["Body"] == null, jIncoming["Content"]["Body"] == null);
-                if (jRecorded["Content"]["Body"] != null)
-                {
-                    Assert.Equal(jRecorded["Content"]["Body"].ToString(), jIncoming["Content"]["Body"].ToString());
-                }
-            }
+            Assert.True(JToken.DeepEquals(jRecorded, jIncoming));
         }
 
         public override bool IsRecording => false;
