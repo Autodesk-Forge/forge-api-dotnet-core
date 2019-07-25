@@ -53,3 +53,7 @@ dotnet build Autodesk.Forge.Core.sln
 ```
 dotnet test Autodesk.Forge.Core.sln
 ```
+
+## License
+
+This sample is licensed under the terms of the **Apache License 2.0**. Please see the [LICENSE](LICENSE) file for full details.
