@@ -8,7 +8,11 @@
     <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks e2e tests</Description>
     <Copyright>Autodesk Inc.</Copyright>
-    <Version>1.0.0-beta2</Version>
+    <Version>1.0.0</Version>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core</PackageProjectUrl>
+    <PackageIconUrl>http://developer.static.autodesk.com/images/logo_forge-2-line.png</PackageIconUrl>
+    <PackageReleaseNotes>For full release notes see https://github.com/Autodesk-Forge/forge-api-dotnet-core/blob/master/CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
