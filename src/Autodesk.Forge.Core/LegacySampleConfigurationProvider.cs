@@ -51,6 +51,22 @@ namespace Autodesk.Forge.Core
             {
                 this.Data.Add("Forge:ClientSecret", secret);
             }
+            
+            var proxyUrl = Environment.GetEnvironmentVariable("FORGE_PROXY_URL");
+            if (!string.IsNullOrEmpty(id))
+            {
+                this.Data.Add("Forge:ProxyUrl", proxyUrl);
+            }
+            var proxyUser = Environment.GetEnvironmentVariable("FORGE_PROXY_USER");
+            if (!string.IsNullOrEmpty(secret))
+            {
+                this.Data.Add("Forge:ProxyUser", proxyUser);
+            }
+            var proxyPass = Environment.GetEnvironmentVariable("FORGE_PROXY_PASS");
+            if (!string.IsNullOrEmpty(secret))
+            {
+                this.Data.Add("Forge:ProxyPass", proxyPass);
+            }
         }
     }
 }
