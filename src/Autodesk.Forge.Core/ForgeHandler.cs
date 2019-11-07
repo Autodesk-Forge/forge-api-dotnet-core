@@ -44,6 +44,28 @@ namespace Autodesk.Forge.Core
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.TokenCache = new TokenCache();
             this.resiliencyPolicies = GetResiliencyPolicies();
+            var config = this.configuration.Value;
+
+            var handler = new HttpClientHandler();
+            if (config.ProxyUrl != null)
+            {
+                if (config.ProxyUser != null)
+                {
+
+                    Proxy = new WebProxy(config.ProxyUrl);
+                    Proxy.Credentials = new NetworkCredential(config.ProxyUser, config.ProxyPass);
+                }
+                else
+                {
+                    Proxy = new WebProxy(config.ProxyUrl);
+                }
+
+                handler.Proxy = Proxy;
+                handler.UseProxy = true;
+                
+               
+            }
+            this.InnerHandler = handler;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
