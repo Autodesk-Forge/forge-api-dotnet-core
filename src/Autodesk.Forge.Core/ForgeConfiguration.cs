@@ -30,6 +30,9 @@ namespace Autodesk.Forge.Core
         }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
+        public string ProxyUrl { get; set; }
+        public string ProxyUser { get; set; }
+        public string ProxyPass { get; set; }
         public Uri AuthenticationAddress { get; set; }
     }
 }
