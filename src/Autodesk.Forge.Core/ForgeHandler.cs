@@ -31,6 +31,7 @@ namespace Autodesk.Forge.Core
 {
     public class ForgeHandler : DelegatingHandler
     {
+        private IWebProxy Proxy;
         private const int ForgeGatewayTimeoutSeconds = 10;
         static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
