@@ -31,21 +31,28 @@ namespace Autodesk.Forge.Core
 {
     public class ForgeHandler : DelegatingHandler
     {
-        private const int ForgeGatewayTimeoutSeconds = 10;
-        static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
-
+        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         private readonly Random rand = new Random();
         private readonly IAsyncPolicy<HttpResponseMessage> resiliencyPolicies;
         protected readonly IOptions<ForgeConfiguration> configuration;
+
         protected ITokenCache TokenCache { get; private set; }
 
         public ForgeHandler(IOptions<ForgeConfiguration> configuration)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.TokenCache = new TokenCache();
-            this.resiliencyPolicies = GetResiliencyPolicies();
+            this.resiliencyPolicies = GetResiliencyPolicies(GetDefaultTimeout());
         }
-
+        protected virtual TimeSpan GetDefaultTimeout()
+        {
+             // use timeout greater than the forge gateways (10s), we handle the GatewayTimeout response
+            return TimeSpan.FromSeconds(15); 
+        }
+        protected virtual (int baseDelayInMs, int multiplier ) GetRetryParameters()
+        {
+            return (500, 1000);
+        }
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (request.RequestUri == null)
@@ -58,7 +65,7 @@ namespace Autodesk.Forge.Core
             // check if request wants custom timeout
             if (request.Properties.TryGetValue(ForgeConfiguration.TimeoutKey, out var timeoutValue))
             {
-                policies = GetResiliencyPolicies((int)timeoutValue);
+                policies = GetResiliencyPolicies(TimeSpan.FromSeconds((int)timeoutValue));
             }
             else
             {
@@ -74,7 +81,7 @@ namespace Autodesk.Forge.Core
                 // add a retry policy so that we refresh invalid tokens
                 policies = policies.WrapAsync(GetTokenRefreshPolicy());
             }
-            return await policies.ExecuteAsync(async () => await base.SendAsync(request, cancellationToken));
+            return await policies.ExecuteAsync(async (ct) => await base.SendAsync(request, ct), cancellationToken);
         }
 
         protected virtual IAsyncPolicy<HttpResponseMessage> GetTokenRefreshPolicy()
@@ -88,33 +95,34 @@ namespace Autodesk.Forge.Core
                 );
         }
 
-        protected virtual IAsyncPolicy<HttpResponseMessage> GetResiliencyPolicies(int timeoutSeconds = ForgeGatewayTimeoutSeconds)
+        protected virtual IAsyncPolicy<HttpResponseMessage> GetResiliencyPolicies(TimeSpan timeoutValue)
         {
             // Retry when HttpRequestException is thrown (low level network error) or 
             // the server returns an error code that we think is transient
-            var errors = Policy
-                .Handle<HttpRequestException>()
-                .OrResult<HttpResponseMessage>(response =>
-                {
-                    int[] retriable = {
+            //
+            int[] retriable = {
                         (int)HttpStatusCode.RequestTimeout, // 408
                         429, //too many requests
                         (int)HttpStatusCode.BadGateway, // 502
                         (int)HttpStatusCode.ServiceUnavailable, // 503
                         (int)HttpStatusCode.GatewayTimeout // 504
                         };
+            var (retryBaseDelay, retryMultiplier) = GetRetryParameters();
+            var retry = Policy
+                .Handle<HttpRequestException>()
+                .Or<Polly.Timeout.TimeoutRejectedException>()// thrown by Polly's TimeoutPolicy if the inner call times out
+                .OrResult<HttpResponseMessage>(response =>
+                {
                     return retriable.Contains((int)response.StatusCode);
-                });
-
-            // retry 3 times with exponential backoff and jitter while respecting the RetryAfter header from server
-            var retry = errors.WaitAndRetryAsync(
+                })
+                .WaitAndRetryAsync(
                 retryCount: 5,
                 sleepDurationProvider: (retryCount, response, context) =>
                 {
                     // First see how long the server wants us to wait
                     var serverWait = response.Result?.Headers.RetryAfter?.Delta;
                     // Calculate how long we want to wait in milliseconds
-                    var clientWait = (double)rand.Next(500, (int)Math.Pow(2, retryCount) * 1000);
+                    var clientWait = (double)rand.Next(retryBaseDelay /*500*/, (int)Math.Pow(2, retryCount) * retryMultiplier /*1000*/);
                     var wait = clientWait;
                     if (serverWait.HasValue)
                     {
@@ -124,15 +132,24 @@ namespace Autodesk.Forge.Core
                 },
                 onRetryAsync: (response, sleepTime, retryCount, content) => Task.CompletedTask);
 
-            // break circuit after 5 errors and keep it broken for 10 seconds
-            var breaker = errors.CircuitBreakerAsync(7, TimeSpan.FromSeconds(10));
+            // break circuit after 3 errors and keep it broken for 1 minute
+            var breaker = Policy
+                .Handle<HttpRequestException>()
+                .Or<Polly.Timeout.TimeoutRejectedException>()// thrown by Polly's TimeoutPolicy if the inner call times out
+                .OrResult<HttpResponseMessage>(response =>
+                {
+                    //we want to break the circuit if retriable erros persist or internal errors from the server
+                    return retriable.Contains((int)response.StatusCode) || 
+                           response.StatusCode == HttpStatusCode.InternalServerError;
+                })
+                .CircuitBreakerAsync(3, TimeSpan.FromMinutes(1));
 
             // timeout handler
-            var timeoutValue = TimeSpan.FromSeconds(timeoutSeconds);
-            var timeout = Policy.TimeoutAsync<HttpResponseMessage>(timeoutValue, Polly.Timeout.TimeoutStrategy.Pessimistic);
+            // https://github.com/App-vNext/Polly/wiki/Polly-and-HttpClientFactory#use-case-applying-timeouts
+            var timeout = Policy.TimeoutAsync<HttpResponseMessage>(timeoutValue);
 
             // ordering is important here!
-            return Policy.WrapAsync<HttpResponseMessage>(retry, breaker, timeout);
+            return Policy.WrapAsync<HttpResponseMessage>(breaker, retry, timeout);
         }
 
         protected virtual async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
