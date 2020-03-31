@@ -20,6 +20,15 @@ namespace Autodesk.Forge.Core.Test
         {
         }
         public new ITokenCache TokenCache { get { return base.TokenCache; } }
+        public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMilliseconds(200);
+        protected override TimeSpan GetDefaultTimeout()
+        {
+            return DefaultTimeout;
+        }
+        protected override (int baseDelayInMs, int multiplier) GetRetryParameters()
+        {
+            return (5, 10);
+        }
     }
 
     public class TestForgeHandler1
@@ -200,7 +209,7 @@ namespace Autodesk.Forge.Core.Test
                  {
                      Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", newToken }, { "expires_in", "3" } })),
                      StatusCode = System.Net.HttpStatusCode.OK
-                 }, TimeSpan.FromSeconds(2)
+                 }, TweakableForgeHandler.DefaultTimeout/2
                  );
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == requestUri && r.Headers.Authorization.Parameter == newToken), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage()
@@ -381,10 +390,12 @@ namespace Autodesk.Forge.Core.Test
             };
             var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri && r.Headers.Authorization.Parameter == cachedToken), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new HttpResponseMessage()
+                .Returns(async (HttpRequestMessage r, CancellationToken ct) =>
                 {
-                    StatusCode = System.Net.HttpStatusCode.GatewayTimeout
-                }, TimeSpan.FromSeconds(12));
+                    await Task.Delay(TweakableForgeHandler.DefaultTimeout*2);
+                    ct.ThrowIfCancellationRequested();
+                    return new HttpResponseMessage() { StatusCode = System.Net.HttpStatusCode.OK };
+                });
 
             var fh = new TweakableForgeHandler(Options.Create(config))
             {
@@ -420,7 +431,7 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri && r.Headers.Authorization.Parameter == cachedToken), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage()
                 {
-                    StatusCode = System.Net.HttpStatusCode.GatewayTimeout
+                    StatusCode = System.Net.HttpStatusCode.InternalServerError
                 });
 
             var fh = new TweakableForgeHandler(Options.Create(config))
@@ -434,12 +445,17 @@ namespace Autodesk.Forge.Core.Test
             var invoker = new HttpMessageInvoker(fh);
 
             req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
-            await invoker.SendAsync(req, CancellationToken.None);
+            // We tolerate 3 failures before we break the circuit
+            for (int i = 0; i < 3; i++)
+            {
+                var resp = await invoker.SendAsync(req, CancellationToken.None);
+                Assert.Equal(System.Net.HttpStatusCode.InternalServerError, resp.StatusCode);
+            }
 
             await Assert.ThrowsAsync<Polly.CircuitBreaker.BrokenCircuitException<HttpResponseMessage>>(async () => await invoker.SendAsync(req, CancellationToken.None));
 
-            // We tolerate 5 failures before we break the circuit
-            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(7));
+            
+            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
 
             sink.VerifyAll();
         }
@@ -462,7 +478,7 @@ namespace Autodesk.Forge.Core.Test
         [Fact]
         public async void TestTriggeredTimeout()
         {
-            var (sink, requestSender) = GetReady(allowedTimeout: 2, actualResponseTimeout: 5);
+            var (sink, requestSender) = GetReady(1, TimeSpan.FromMilliseconds(1100));
             await Assert.ThrowsAsync<Polly.Timeout.TimeoutRejectedException>(async () => await requestSender());
 
             sink.VerifyAll();
@@ -471,7 +487,7 @@ namespace Autodesk.Forge.Core.Test
         [Fact]
         public async void TestNoTimeout()
         {
-            var (sink, requestSender) = GetReady(allowedTimeout: 5, actualResponseTimeout: 2);
+            var (sink, requestSender) = GetReady(1, TimeSpan.FromMilliseconds(100));
 
             HttpResponseMessage response = await requestSender();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
@@ -482,17 +498,17 @@ namespace Autodesk.Forge.Core.Test
         /// <summary>
         /// Create all required components for custom timeout validation.
         /// </summary>
-        /// <param name="allowedTimeout">Allowed timeout in seconds.</param>
-        /// <param name="actualResponseTimeout">Actual response timeout.</param>
+        /// <param name="allowedTimeInSec">Allowed time in seconds.</param>
+        /// <param name="responseTime">Actual response time.</param>
         /// <returns>
         /// Tuple with:
         /// * mock to validate after tests are complete.
         /// * functor to perform mocked HTTP request/response operation.
         /// </returns>
-        private (Mock<HttpMessageHandler> sink, Func<Task<HttpResponseMessage>> requestSender) GetReady(int allowedTimeout, int actualResponseTimeout)
+        private (Mock<HttpMessageHandler> sink, Func<Task<HttpResponseMessage>> requestSender) GetReady(int allowedTimeInSec, TimeSpan responseTime)
         {
-            var req = RequestWithTimeout(allowedTimeout);
-            var sink = MakeSink(req, actualResponseTimeout);
+            var req = RequestWithTimeout(allowedTimeInSec);
+            var sink = MakeSink(req, responseTime);
 
             var fh = new TweakableForgeHandler(Options.Create(_forgeConfig))
             {
@@ -509,17 +525,18 @@ namespace Autodesk.Forge.Core.Test
         /// </summary>
         /// <param name="req">Expected HTTP request.</param>
         /// <param name="responseTimeout">Response timeout in seconds.</param>
-        private static Mock<HttpMessageHandler> MakeSink(HttpRequestMessage req, int responseTimeout)
+        private static Mock<HttpMessageHandler> MakeSink(HttpRequestMessage req, TimeSpan responseTime)
         {
             var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             sink.Protected()
                 .As<HttpMessageInvoker>()
                 .Setup(o => o.SendAsync(It.Is(EnsureRequest(req)), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new HttpResponseMessage
-                    {
-                        StatusCode = System.Net.HttpStatusCode.OK
-                    },
-                    TimeSpan.FromSeconds(responseTimeout));
+                .Returns(async (HttpRequestMessage r, CancellationToken ct) =>
+                {
+                    await Task.Delay(responseTime);
+                    ct.ThrowIfCancellationRequested();
+                    return new HttpResponseMessage() { StatusCode = System.Net.HttpStatusCode.OK };
+                });
 
             return sink;
         }
