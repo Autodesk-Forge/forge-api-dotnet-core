@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Polly" Version="6.1.2" />
+    <PackageReference Include="Polly" Version="7.2.0" />
   </ItemGroup>
 
   <Import Project="../../nuget.targets"/>
