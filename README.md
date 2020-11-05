@@ -31,6 +31,8 @@ Please ask questions on [StackOverflow](https://stackoverflow.com/questions/ask?
 
 This package is intended to be used by other packages, such as `Autodesk.Forge.DesignAutomation`.
 
+This is for testing only
+
 ## Versioning
 
 Using [Semantic Version](https://semver.org/) scheme following the pattern of `x.y.z.`:
