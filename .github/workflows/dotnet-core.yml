@@ -35,7 +35,7 @@ jobs:
       uses: github/codeql-action/autobuild@v1
     
     - name: Perform CodeQL Analysis
-      id: CodeQL analysis
+      id: CodeQL_analysis
       uses: github/codeql-action/analyze@v1
     
     - name: Test
@@ -43,7 +43,7 @@ jobs:
       run: dotnet test tests/Autodesk.Forge.Core.Test/Autodesk.Forge.Core.Test.csproj
     
     - name: Publish
-      id: publish to Nuget
+      id: publish_to_Nuget
       if: ${{ github.ref != 'refs/heads/master'}}
       run: |
        dotnet msbuild src/Autodesk.Forge.Core/Autodesk.Forge.Core.csproj /t:Push
