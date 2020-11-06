@@ -1,0 +1,52 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.2.108
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: ${{ matrix.language }}
+    
+    - name: Autobuild
+      id: build
+      uses: github/codeql-action/autobuild@v1
+    
+    - name: Perform CodeQL Analysis
+      id: CodeQL_analysis
+      uses: github/codeql-action/analyze@v1
+    
+    - name: Test
+      id: test
+      run: dotnet test tests/Autodesk.Forge.Core.Test/Autodesk.Forge.Core.Test.csproj
+    
+    - name: Publish
+      id: publish_to_Nuget
+      if: ${{ github.event_name =='push' && github.ref == 'refs/heads/main'}}
+      run: |
+       dotnet msbuild src/Autodesk.Forge.Core/Autodesk.Forge.Core.csproj /t:Push
+       dotnet msbuild src/Autodesk.Forge.Core.E2eTestHelpers/Autodesk.Forge.Core.E2eTestHelpers.csproj /t:Push
+      env:
+        NugetApiKey: ${{ secrets.NUGETAPIKEYBYENGOPS }}
