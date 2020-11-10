@@ -2,7 +2,7 @@
 
 ![SDK](https://img.shields.io/badge/SDK-1.0.1-lightgree.svg)
 ![.NET](https://img.shields.io/badge/.NET%20Standard-2.0-blue.svg)
-![BUILD](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiWFF1VW1xODdHcHdEL3NkNEJRQ0dKL3pjcmFQeXhFR0k1U1NBOFl4THE4VXpSWlRJZ2hLdU9xR2ZKNkpONkszK0ZwemlEdUNvRUFDbEhTL3B3NHA3dDVBPSIsIml2UGFyYW1ldGVyU3BlYyI6InhpRUFTZzg1ZEQvQU93anYiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
+![BUILD](https://github.com/Autodesk-Forge/forge-api-dotnet-core/workflows/.NET%20Core/badge.svg?branch=main)
 
 ## Overview
 
@@ -13,7 +13,7 @@
 ### Dependencies
 
 - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) 12.0.1 or later
-- [Polly](https://github.com/App-vNext/Polly) 6.1.2 or later
+- [Polly](https://github.com/App-vNext/Polly) 7.2.1 or later
 
 ### Changelog
 
