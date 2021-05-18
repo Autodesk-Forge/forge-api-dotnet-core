@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 using System;
+using System.Net.Http;
 
 namespace Autodesk.Forge.Core
 {
     public class ForgeConfiguration
     {
-        public const string ScopeKey = "Autodesk.Forge.Scope";
-        public const string TimeoutKey = "Autodesk.Forge.Timeout";
+        public static readonly HttpRequestOptionsKey<string> ScopeKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Scope");
+        public static readonly HttpRequestOptionsKey<int> TimeoutKey = new HttpRequestOptionsKey<int>("Autodesk.Forge.Timeout");
 
         public ForgeConfiguration()
         {

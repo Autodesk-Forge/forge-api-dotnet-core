@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Autodesk Forge</Authors>
 	  <owners>Autodesk Forge</owners>
@@ -15,9 +15,13 @@
 	  <PackageId>Autodesk.Forge.Core</PackageId>
 	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core</PackageProjectUrl>
-    <PackageIconUrl>http://developer.static.autodesk.com/images/logo_forge-2-line.png</PackageIconUrl>
+    <PackageIcon>logo_forge-2-line.png</PackageIcon>
     <PackageReleaseNotes>For full release notes see https://github.com/Autodesk-Forge/forge-api-dotnet-core/blob/master/CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\images\logo_forge-2-line.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />

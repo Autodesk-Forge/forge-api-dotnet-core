@@ -63,9 +63,9 @@ namespace Autodesk.Forge.Core
             IAsyncPolicy<HttpResponseMessage> policies;
 
             // check if request wants custom timeout
-            if (request.Properties.TryGetValue(ForgeConfiguration.TimeoutKey, out var timeoutValue))
+            if (request.Options.TryGetValue(ForgeConfiguration.TimeoutKey, out var timeoutValue))
             {
-                policies = GetResiliencyPolicies(TimeSpan.FromSeconds((int)timeoutValue));
+                policies = GetResiliencyPolicies(TimeSpan.FromSeconds(timeoutValue));
             }
             else
             {
@@ -74,7 +74,7 @@ namespace Autodesk.Forge.Core
 
 
             if (request.Headers.Authorization == null &&
-                request.Properties.ContainsKey(ForgeConfiguration.ScopeKey))
+                request.Options.TryGetValue(ForgeConfiguration.ScopeKey, out _))
             {
                 // no authorization header so we manage authorization
                 await RefreshTokenAsync(request, false, cancellationToken);
@@ -154,7 +154,7 @@ namespace Autodesk.Forge.Core
 
         protected virtual async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
         {
-            if (request.Properties.TryGetValue(ForgeConfiguration.ScopeKey, out var obj))
+            if (request.Options.TryGetValue(ForgeConfiguration.ScopeKey, out var scope))
             {
                 // it is possible that multiple threads get here at the same time, only one of them should 
                 // attempt to refresh the token. 
@@ -162,7 +162,6 @@ namespace Autodesk.Forge.Core
                 await semaphore.WaitAsync(cancellationToken);
                 try
                 {
-                    var scope = (string)obj;
                     if (ignoreCache || !TokenCache.TryGetValue(scope, out var token))
                     {
                         TimeSpan expiry;
