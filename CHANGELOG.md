@@ -1,3 +1,9 @@
+### 2.0.0.0
+
+* Migrate to .Net 5
+* Support to return HttpStatusCode in HttpRequestException
+	
+
 ### 1.0.0.0
 
 * 1.0.0-beta4
