@@ -38,7 +38,7 @@ namespace Autodesk.Forge.Core
                 {
                     errorMessage = $"\nMore error details:\n{errorMessage}.";
                 }
-                throw new HttpRequestException($"The server returned the non-success status code {(int)msg.StatusCode} ({msg.ReasonPhrase}).{errorMessage}");
+                throw new HttpRequestException($"The server returned the non-success status code {(int)msg.StatusCode} ({msg.ReasonPhrase}).{errorMessage}", null, msg.StatusCode);
             }
             return msg;
         }
