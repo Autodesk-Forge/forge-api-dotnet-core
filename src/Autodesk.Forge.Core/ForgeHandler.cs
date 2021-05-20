@@ -138,7 +138,7 @@ namespace Autodesk.Forge.Core
                 .Or<Polly.Timeout.TimeoutRejectedException>()// thrown by Polly's TimeoutPolicy if the inner call times out
                 .OrResult<HttpResponseMessage>(response =>
                 {
-                    //we want to break the circuit if retriable erros persist or internal errors from the server
+                    //we want to break the circuit if retriable errors persist or internal errors from the server
                     return retriable.Contains((int)response.StatusCode) || 
                            response.StatusCode == HttpStatusCode.InternalServerError;
                 })
