@@ -15,25 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 
 namespace Autodesk.Forge.Core
 {
-    public class ForgeConfiguration
+    public class ForgeUserConfiguration
     {
-        public static readonly HttpRequestOptionsKey<string> UserKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.User");
-        public static readonly HttpRequestOptionsKey<string> ScopeKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Scope");
-        public static readonly HttpRequestOptionsKey<int> TimeoutKey = new HttpRequestOptionsKey<int>("Autodesk.Forge.Timeout");
-
-        public ForgeConfiguration()
-        {
-            this.AuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v1/authenticate");
-        }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
-        public IDictionary<string, ForgeUserConfiguration> Users { get; set; }
-        public Uri AuthenticationAddress { get; set; }
     }
 }

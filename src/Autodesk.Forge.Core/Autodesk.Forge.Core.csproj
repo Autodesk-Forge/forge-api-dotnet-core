@@ -9,9 +9,9 @@
     <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks</Description>
     <Copyright>Autodesk Inc.</Copyright>
-    <Version>2.0.1</Version>
-	  <AssemblyVersion>2.0.1.0</AssemblyVersion>
-    <FileVersion>2.0.1.0</FileVersion>
+    <Version>2.1.0</Version>
+	<AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
 	  <PackageId>Autodesk.Forge.Core</PackageId>
 	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core</PackageProjectUrl>
@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\images\logo_forge-2-line.png" Pack="true" PackagePath="\"/>
+    <None Include="..\..\images\logo_forge-2-line.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,8 +30,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Polly" Version="7.2.2" />
+    <PackageReference Include="Polly" Version="7.2.3" />
   </ItemGroup>
 
   <Import Project="../../nuget.targets" />

@@ -37,7 +37,7 @@ namespace Autodesk.Forge.Core.Test
         [Fact]
         public async void TestDeserializeNullInvalid()
         {
-            await Assert.ThrowsAsync <Newtonsoft.Json.JsonSerializationException>(() => Marshalling.DeserializeAsync<int>(new StringContent("null", Encoding.UTF8, "application/json")));
+            await Assert.ThrowsAsync <System.Text.Json.JsonException>(() => Marshalling.DeserializeAsync<int>(new StringContent("null", Encoding.UTF8, "application/json")));
         }
 
         [Fact]

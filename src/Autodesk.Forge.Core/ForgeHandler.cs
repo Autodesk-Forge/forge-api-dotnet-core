@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Polly;
 using System;
 using System.Collections.Generic;
@@ -26,6 +25,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text.Json;
 
 namespace Autodesk.Forge.Core
 {
@@ -156,17 +156,20 @@ namespace Autodesk.Forge.Core
         {
             if (request.Options.TryGetValue(ForgeConfiguration.ScopeKey, out var scope))
             {
+                var user = string.Empty;
+                request.Options.TryGetValue(ForgeConfiguration.UserKey, out user);
+                var cacheKey = user + scope;
                 // it is possible that multiple threads get here at the same time, only one of them should 
                 // attempt to refresh the token. 
-                // NOTE: We could use different semaphores for different scopes here. It is a minor optimization.
+                // NOTE: We could use different semaphores for different cacheKey here. It is a minor optimization.
                 await semaphore.WaitAsync(cancellationToken);
                 try
                 {
-                    if (ignoreCache || !TokenCache.TryGetValue(scope, out var token))
+                    if (ignoreCache || !TokenCache.TryGetValue(cacheKey, out var token))
                     {
                         TimeSpan expiry;
-                        (token, expiry) = await this.Get2LeggedTokenAsync(scope, cancellationToken);
-                        TokenCache.Add(scope, token, expiry);
+                        (token, expiry) = await this.Get2LeggedTokenAsync(user, scope, cancellationToken);
+                        TokenCache.Add(cacheKey, token, expiry);
                     }
                     request.Headers.Authorization = AuthenticationHeaderValue.Parse(token);
                 }
@@ -176,7 +179,7 @@ namespace Autodesk.Forge.Core
                 }
             }
         }
-        protected virtual async Task<(string, TimeSpan)> Get2LeggedTokenAsync(string scope, CancellationToken cancellationToken)
+        protected virtual async Task<(string, TimeSpan)> Get2LeggedTokenAsync(string user, string scope, CancellationToken cancellationToken)
         {
             using (var request = new HttpRequestMessage())
             {
@@ -190,8 +193,8 @@ namespace Autodesk.Forge.Core
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}");
                 }
                 var values = new List<KeyValuePair<string, string>>();
-                values.Add(new KeyValuePair<string, string>("client_id", config.ClientId));
-                values.Add(new KeyValuePair<string, string>("client_secret", config.ClientSecret));
+                values.Add(new KeyValuePair<string, string>("client_id", string.IsNullOrEmpty(user) ? config.ClientId : config.Users[user].ClientId));
+                values.Add(new KeyValuePair<string, string>("client_secret", string.IsNullOrEmpty(user) ? config.ClientSecret : config.Users[user].ClientSecret));
                 values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
                 values.Add(new KeyValuePair<string, string>("scope", scope));
                 request.Content = new FormUrlEncodedContent(values);
@@ -202,7 +205,7 @@ namespace Autodesk.Forge.Core
 
                 response.EnsureSuccessStatusCode();
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var resValues = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
+                var resValues = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
                 return (resValues["token_type"] + " " + resValues["access_token"], TimeSpan.FromSeconds(double.Parse(resValues["expires_in"])));
             }
         }

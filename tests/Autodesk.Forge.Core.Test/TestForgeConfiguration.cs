@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
+using System.IO;
+using System.Text;
 using Xunit;
 
 namespace Autodesk.Forge.Core.Test
@@ -49,6 +51,60 @@ namespace Autodesk.Forge.Core.Test
             var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>();
             Assert.Equal("bla", config.Value.ClientId);
             Assert.Equal("blabla", config.Value.ClientSecret);
+        }
+
+        [Fact]
+        public void TestValuesFromJson()
+        {
+            var json = @"
+            {
+                ""Forge"" : {
+                    ""ClientId"" : ""bla"",
+                    ""ClientSecret"" : ""blabla""
+                }
+            }";
+            var configuration = new ConfigurationBuilder()
+                .AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(json)))
+                .Build();
+
+            var services = new ServiceCollection();
+            services.AddForgeService(configuration);
+            var serviceProvider = services.BuildServiceProvider();
+
+            var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>();
+            Assert.Equal("bla", config.Value.ClientId);
+            Assert.Equal("blabla", config.Value.ClientSecret);
+        }
+
+        [Fact]
+        public void TestValuesFromJsonMoreUsers()
+        {
+            var json = @"
+            {
+                ""Forge"" : {
+                    ""ClientId"" : ""bla"",
+                    ""ClientSecret"" : ""blabla"",
+                    ""Users"" : {
+                        ""user1"" : {
+                            ""ClientId"" : ""user1-bla"",
+                            ""ClientSecret"" : ""user1-blabla""
+                        }
+                    }
+                }
+            }";
+            var configuration = new ConfigurationBuilder()
+                .AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(json)))
+                .Build();
+
+            var services = new ServiceCollection();
+            services.AddForgeService(configuration);
+            var serviceProvider = services.BuildServiceProvider();
+
+            var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>();
+            Assert.Equal("bla", config.Value.ClientId);
+            Assert.Equal("blabla", config.Value.ClientSecret);
+            Assert.Equal("user1-bla", config.Value.Users["user1"].ClientId);
+            Assert.Equal("user1-blabla", config.Value.Users["user1"].ClientSecret);
         }
     }
 }
