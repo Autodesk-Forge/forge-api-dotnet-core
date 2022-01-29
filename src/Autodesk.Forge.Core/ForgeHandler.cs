@@ -184,17 +184,19 @@ namespace Autodesk.Forge.Core
             using (var request = new HttpRequestMessage())
             {
                 var config = this.configuration.Value;
-                if (string.IsNullOrEmpty(config.ClientId))
+                var clientId = string.IsNullOrEmpty(user) ? config.ClientId : config.Users[user].ClientId;
+                if (string.IsNullOrEmpty(clientId))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientId)}");
                 }
-                if (string.IsNullOrEmpty(config.ClientSecret))
+                var clientSecret = string.IsNullOrEmpty(user) ? config.ClientSecret : config.Users[user].ClientSecret;
+                if (string.IsNullOrEmpty(clientSecret))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}");
                 }
                 var values = new List<KeyValuePair<string, string>>();
-                values.Add(new KeyValuePair<string, string>("client_id", string.IsNullOrEmpty(user) ? config.ClientId : config.Users[user].ClientId));
-                values.Add(new KeyValuePair<string, string>("client_secret", string.IsNullOrEmpty(user) ? config.ClientSecret : config.Users[user].ClientSecret));
+                values.Add(new KeyValuePair<string, string>("client_id", clientId));
+                values.Add(new KeyValuePair<string, string>("client_secret", clientSecret));
                 values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
                 values.Add(new KeyValuePair<string, string>("scope", scope));
                 request.Content = new FormUrlEncodedContent(values);
