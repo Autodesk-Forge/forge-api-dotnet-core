@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
@@ -59,7 +59,7 @@ namespace Autodesk.Forge.Core
                 throw new ArgumentException($"Content-Type must be application/json. '{mediaType}' was specified.");
             }
             var str = await content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(str);
+            return JsonConvert.DeserializeObject<T>(str);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Autodesk.Forge.Core
         public static HttpContent Serialize(object obj)
         {
             // we might support other data types (like binary) in the future
-            return new StringContent(JsonSerializer.Serialize(obj), Encoding.UTF8, "application/json");
+            return new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
         }
 
         public static Uri BuildRequestUri(string relativePath, IDictionary<string, object> routeParameters, IDictionary<string, object> queryParameters)

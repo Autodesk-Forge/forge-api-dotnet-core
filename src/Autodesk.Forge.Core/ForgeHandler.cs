@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Polly;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,6 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
-using System.Text.Json;
 
 namespace Autodesk.Forge.Core
 {
@@ -207,7 +207,7 @@ namespace Autodesk.Forge.Core
 
                 response.EnsureSuccessStatusCode();
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var resValues = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+                var resValues = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
                 return (resValues["token_type"] + " " + resValues["access_token"], TimeSpan.FromSeconds(double.Parse(resValues["expires_in"])));
             }
         }
