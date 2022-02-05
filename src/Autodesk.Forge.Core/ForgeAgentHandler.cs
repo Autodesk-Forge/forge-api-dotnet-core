@@ -15,12 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Autodesk.Forge.Core
 {
-    public class ForgeUserConfiguration
+    public class ForgeAgentHandler : DelegatingHandler
     {
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
+        private string user;
+        public ForgeAgentHandler(string user)
+        {
+            this.user = user;
+        }
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.Options.TryAdd(ForgeConfiguration.AgentKey.Key, user);
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 }
+

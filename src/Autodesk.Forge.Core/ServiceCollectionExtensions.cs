@@ -45,7 +45,7 @@ namespace Autodesk.Forge.Core
             services.Configure<ForgeConfiguration>(configuration.GetSection("Forge"));
             services.AddTransient<ForgeHandler>();
             return services.AddHttpClient<ForgeService>(user)
-                .AddHttpMessageHandler(() => new ForgeUserHandler(user))
+                .AddHttpMessageHandler(() => new ForgeAgentHandler(user))
                 .AddHttpMessageHandler<ForgeHandler>();
         }
     }

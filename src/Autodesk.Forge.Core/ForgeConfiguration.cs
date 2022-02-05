@@ -23,7 +23,7 @@ namespace Autodesk.Forge.Core
 {
     public class ForgeConfiguration
     {
-        public static readonly HttpRequestOptionsKey<string> UserKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.User");
+        public static readonly HttpRequestOptionsKey<string> AgentKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Agent");
         public static readonly HttpRequestOptionsKey<string> ScopeKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Scope");
         public static readonly HttpRequestOptionsKey<int> TimeoutKey = new HttpRequestOptionsKey<int>("Autodesk.Forge.Timeout");
 
@@ -33,7 +33,7 @@ namespace Autodesk.Forge.Core
         }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
-        public IDictionary<string, ForgeUserConfiguration> Users { get; set; }
+        public IDictionary<string, ForgeAgentConfiguration> Agents { get; set; }
         public Uri AuthenticationAddress { get; set; }
     }
 }

@@ -110,10 +110,10 @@ namespace Autodesk.Forge.Core.Test
             {
                 ClientId = "ClientId",
                 ClientSecret = "ClientSecret",
-                Users = new Dictionary<string, ForgeUserConfiguration>()
+                Agents = new Dictionary<string, ForgeAgentConfiguration>()
                 {
                     {
-                        "user1", new ForgeUserConfiguration()
+                        "user1", new ForgeAgentConfiguration()
                         {
                             ClientId = "user1-bla",
                             ClientSecret = "user1-blabla"
@@ -158,11 +158,11 @@ namespace Autodesk.Forge.Core.Test
 
             req.RequestUri = new Uri("http://example.com");
             req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
-            req.Options.Set(ForgeConfiguration.UserKey, "user1");
+            req.Options.Set(ForgeConfiguration.AgentKey, "user1");
             await fh.SendAsync(req, CancellationToken.None);
 
-            Assert.Equal(config.Users["user1"].ClientId, actualClientId);
-            Assert.Equal(config.Users["user1"].ClientSecret, actualClientSecret);
+            Assert.Equal(config.Agents["user1"].ClientId, actualClientId);
+            Assert.Equal(config.Agents["user1"].ClientSecret, actualClientSecret);
 
             sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri), It.IsAny<CancellationToken>()), Times.Once());
         }

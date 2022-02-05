@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Autodesk.Forge.Core.Test
 {
-    public class TestForgeUserHandler
+    public class TestForgeAgentHandler
     {
         [Fact]
         public async void TestUser()
@@ -24,7 +24,7 @@ namespace Autodesk.Forge.Core.Test
                 ""Forge"" : {
                     ""ClientId"" : ""bla"",
                     ""ClientSecret"" : ""blabla"",
-                    ""Users"" : {
+                    ""Agents"" : {
                         ""user1"" : {
                             ""ClientId"" : ""user1-bla"",
                             ""ClientSecret"" : ""user1-blabla""
@@ -55,7 +55,7 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri), It.IsAny<CancellationToken>()))
                 .Callback<HttpRequestMessage, CancellationToken>((r, ct) =>
                 {
-                    r.Options.TryGetValue(ForgeConfiguration.UserKey, out user);
+                    r.Options.TryGetValue(ForgeConfiguration.AgentKey, out user);
                 })
                 .ReturnsAsync(new HttpResponseMessage()
                 {

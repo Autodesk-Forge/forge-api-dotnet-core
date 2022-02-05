@@ -77,14 +77,14 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public void TestValuesFromJsonMoreUsers()
+        public void TestValuesFromJsonMoreAgents()
         {
             var json = @"
             {
                 ""Forge"" : {
                     ""ClientId"" : ""bla"",
                     ""ClientSecret"" : ""blabla"",
-                    ""Users"" : {
+                    ""Agents"" : {
                         ""user1"" : {
                             ""ClientId"" : ""user1-bla"",
                             ""ClientSecret"" : ""user1-blabla""
@@ -103,8 +103,8 @@ namespace Autodesk.Forge.Core.Test
             var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>();
             Assert.Equal("bla", config.Value.ClientId);
             Assert.Equal("blabla", config.Value.ClientSecret);
-            Assert.Equal("user1-bla", config.Value.Users["user1"].ClientId);
-            Assert.Equal("user1-blabla", config.Value.Users["user1"].ClientSecret);
+            Assert.Equal("user1-bla", config.Value.Agents["user1"].ClientId);
+            Assert.Equal("user1-blabla", config.Value.Agents["user1"].ClientSecret);
         }
     }
 }

@@ -157,7 +157,7 @@ namespace Autodesk.Forge.Core
             if (request.Options.TryGetValue(ForgeConfiguration.ScopeKey, out var scope))
             {
                 var user = string.Empty;
-                request.Options.TryGetValue(ForgeConfiguration.UserKey, out user);
+                request.Options.TryGetValue(ForgeConfiguration.AgentKey, out user);
                 var cacheKey = user + scope;
                 // it is possible that multiple threads get here at the same time, only one of them should 
                 // attempt to refresh the token. 
@@ -184,12 +184,12 @@ namespace Autodesk.Forge.Core
             using (var request = new HttpRequestMessage())
             {
                 var config = this.configuration.Value;
-                var clientId = string.IsNullOrEmpty(user) ? config.ClientId : config.Users[user].ClientId;
+                var clientId = string.IsNullOrEmpty(user) ? config.ClientId : config.Agents[user].ClientId;
                 if (string.IsNullOrEmpty(clientId))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientId)}");
                 }
-                var clientSecret = string.IsNullOrEmpty(user) ? config.ClientSecret : config.Users[user].ClientSecret;
+                var clientSecret = string.IsNullOrEmpty(user) ? config.ClientSecret : config.Agents[user].ClientSecret;
                 if (string.IsNullOrEmpty(clientSecret))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}");
