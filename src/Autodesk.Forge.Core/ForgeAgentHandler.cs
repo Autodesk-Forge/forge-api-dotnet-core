@@ -15,25 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Autodesk.Forge.Core
 {
-    public class ForgeConfiguration
+    public class ForgeAgentHandler : DelegatingHandler
     {
-        public static readonly HttpRequestOptionsKey<string> AgentKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Agent");
-        public static readonly HttpRequestOptionsKey<string> ScopeKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Scope");
-        public static readonly HttpRequestOptionsKey<int> TimeoutKey = new HttpRequestOptionsKey<int>("Autodesk.Forge.Timeout");
-
-        public ForgeConfiguration()
+        private string user;
+        public ForgeAgentHandler(string user)
         {
-            this.AuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v1/authenticate");
+            this.user = user;
         }
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
-        public IDictionary<string, ForgeAgentConfiguration> Agents { get; set; }
-        public Uri AuthenticationAddress { get; set; }
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.Options.TryAdd(ForgeConfiguration.AgentKey.Key, user);
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 }
+

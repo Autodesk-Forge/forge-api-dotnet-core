@@ -1,14 +1,17 @@
 using Microsoft.Extensions.Options;
 using Moq;
+using Moq.Protected;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using Moq.Protected;
 
 namespace Autodesk.Forge.Core.Test
 {
@@ -65,7 +68,7 @@ namespace Autodesk.Forge.Core.Test
             req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
             await Assert.ThrowsAsync<ArgumentNullException>($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}", () => fh.SendAsync(req, CancellationToken.None));
         }
-
+        
         [Fact]
         public async void TestFirstCallAuthenticates()
         {
@@ -96,6 +99,71 @@ namespace Autodesk.Forge.Core.Test
             await fh.SendAsync(req, CancellationToken.None);
 
             sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()), Times.Once());
+            sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri), It.IsAny<CancellationToken>()), Times.Once());
+        }
+
+        [Fact]
+        public async void TestFirstCallAuthenticatesNonDefaultUser()
+        {
+            var req = new HttpRequestMessage();
+            var config = new ForgeConfiguration()
+            {
+                ClientId = "ClientId",
+                ClientSecret = "ClientSecret",
+                Agents = new Dictionary<string, ForgeAgentConfiguration>()
+                {
+                    {
+                        "user1", new ForgeAgentConfiguration()
+                        {
+                            ClientId = "user1-bla",
+                            ClientSecret = "user1-blabla"
+                        }
+                    }
+                }
+            };
+            string actualClientId = null;
+            string actualClientSecret = null;
+            var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()))
+                .Callback<HttpRequestMessage, CancellationToken>((r, ct) =>
+                {
+                    var stream = r.Content.ReadAsStream();
+                    int length = (int)stream.Length;
+                    var buffer = new byte[length];
+                    stream.Read(buffer, 0, length);
+                    var content = Encoding.UTF8.GetString(buffer);
+                    var matches = Regex.Matches(content, "(?<key>[^=&]+)=(?<value>[^&]+)");
+                    actualClientId = GetValue("client_id");
+                    actualClientSecret = GetValue("client_secret");
+                    string GetValue(string key)
+                    {
+                        return (from m in matches where m.Groups["key"].Value == key select m.Groups["value"].Value).Single();
+                    }
+                })
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", "blablabla" }, { "expires_in", "3" } })),
+                    StatusCode = System.Net.HttpStatusCode.OK
+                });
+            sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK
+                });
+            
+            var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(config))
+            {
+                InnerHandler = sink.Object
+            });
+
+            req.RequestUri = new Uri("http://example.com");
+            req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
+            req.Options.Set(ForgeConfiguration.AgentKey, "user1");
+            await fh.SendAsync(req, CancellationToken.None);
+
+            Assert.Equal(config.Agents["user1"].ClientId, actualClientId);
+            Assert.Equal(config.Agents["user1"].ClientSecret, actualClientSecret);
+
             sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri), It.IsAny<CancellationToken>()), Times.Once());
         }
 
