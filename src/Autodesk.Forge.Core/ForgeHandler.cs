@@ -33,7 +33,7 @@ namespace Autodesk.Forge.Core
 
         protected ITokenCache TokenCache { get; private set; }
 
-        private bool DoesUseDefaultClient(string user) => string.IsNullOrEmpty(user) || user == ForgeAgentHandler.defaultAgentName;
+        private bool IsDefaultClient(string user) => string.IsNullOrEmpty(user) || user == ForgeAgentHandler.defaultAgentName;
 
         public ForgeHandler(IOptions<ForgeConfiguration> configuration)
         {
@@ -181,12 +181,12 @@ namespace Autodesk.Forge.Core
             using (var request = new HttpRequestMessage())
             {
                 var config = this.configuration.Value;
-                var clientId = this.DoesUseDefaultClient(user) ? config.ClientId : config.Agents[user].ClientId;
+                var clientId = this.IsDefaultClient(user) ? config.ClientId : config.Agents[user].ClientId;
                 if (string.IsNullOrEmpty(clientId))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientId)}");
                 }
-                var clientSecret = this.DoesUseDefaultClient(user) ? config.ClientSecret : config.Agents[user].ClientSecret;
+                var clientSecret = this.IsDefaultClient(user) ? config.ClientSecret : config.Agents[user].ClientSecret;
                 if (string.IsNullOrEmpty(clientSecret))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}");
