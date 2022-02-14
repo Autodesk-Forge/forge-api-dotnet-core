@@ -20,6 +20,8 @@ namespace Autodesk.Forge.Core
 {
     public class ForgeAgentHandler : DelegatingHandler
     {
+        public const string defaultAgentName = "default";
+        
         private string user;
         public ForgeAgentHandler(string user)
         {
