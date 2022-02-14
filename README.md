@@ -1,19 +1,19 @@
 # Autodesk.Forge.Core
 
-![SDK](https://img.shields.io/badge/SDK-2.0.0-lightgree.svg)
-![.NET](https://img.shields.io/badge/.NET%20-5.0-blue.svg)
+![SDK](https://img.shields.io/badge/SDK-3.0.0-lightgree.svg)
+![.NET](https://img.shields.io/badge/.NET%20-6.0-blue.svg)
 ![BUILD](https://github.com/Autodesk-Forge/forge-api-dotnet-core/workflows/.NET%20Core/badge.svg?branch=main)
 
 ## Overview
 
 ### Requirements
 
-- .NET 5 or later
+- .NET 6 or later
 
 ### Dependencies
 
 - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) 13.0.1 or later
-- [Polly](https://github.com/App-vNext/Polly) 7.2.2 or later
+- [Polly](https://github.com/App-vNext/Polly) 7.2.3 or later
 
 ### Changelog
 
