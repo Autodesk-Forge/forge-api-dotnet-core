@@ -28,9 +28,12 @@ namespace Autodesk.Forge.Core
         private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         private readonly Random rand = new Random();
         private readonly IAsyncPolicy<HttpResponseMessage> resiliencyPolicies;
+
         protected readonly IOptions<ForgeConfiguration> configuration;
 
         protected ITokenCache TokenCache { get; private set; }
+
+        private bool IsDefaultClient(string user) => string.IsNullOrEmpty(user) || user == ForgeAgentHandler.defaultAgentName;
 
         public ForgeHandler(IOptions<ForgeConfiguration> configuration)
         {
@@ -178,12 +181,12 @@ namespace Autodesk.Forge.Core
             using (var request = new HttpRequestMessage())
             {
                 var config = this.configuration.Value;
-                var clientId = string.IsNullOrEmpty(user) ? config.ClientId : config.Agents[user].ClientId;
+                var clientId = this.IsDefaultClient(user) ? config.ClientId : config.Agents[user].ClientId;
                 if (string.IsNullOrEmpty(clientId))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientId)}");
                 }
-                var clientSecret = string.IsNullOrEmpty(user) ? config.ClientSecret : config.Agents[user].ClientSecret;
+                var clientSecret = this.IsDefaultClient(user) ? config.ClientSecret : config.Agents[user].ClientSecret;
                 if (string.IsNullOrEmpty(clientSecret))
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}");
