@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Autodesk.Forge.Core
 {

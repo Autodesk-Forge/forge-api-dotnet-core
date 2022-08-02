@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Autodesk.Forge.Core
 {
     public class ForgeAgentHandler : DelegatingHandler
@@ -29,7 +33,7 @@ namespace Autodesk.Forge.Core
         }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            request.Options.TryAdd(ForgeConfiguration.AgentKey.Key, user);
+            request.Properties.Add(ForgeConfiguration.AgentKey, user);
             return base.SendAsync(request, cancellationToken);
         }
     }

@@ -18,8 +18,15 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Polly;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+
 
 namespace Autodesk.Forge.Core
 {
@@ -60,9 +67,9 @@ namespace Autodesk.Forge.Core
             IAsyncPolicy<HttpResponseMessage> policies;
 
             // check if request wants custom timeout
-            if (request.Options.TryGetValue(ForgeConfiguration.TimeoutKey, out var timeoutValue))
+            if (request.Properties.TryGetValue(ForgeConfiguration.TimeoutKey, out var timeoutValue))
             {
-                policies = GetResiliencyPolicies(TimeSpan.FromSeconds(timeoutValue));
+                policies = GetResiliencyPolicies(TimeSpan.FromSeconds((int)timeoutValue));
             }
             else
             {
@@ -71,7 +78,7 @@ namespace Autodesk.Forge.Core
 
 
             if (request.Headers.Authorization == null &&
-                request.Options.TryGetValue(ForgeConfiguration.ScopeKey, out _))
+                request.Properties.TryGetValue(ForgeConfiguration.ScopeKey, out _))
             {
                 // no authorization header so we manage authorization
                 await RefreshTokenAsync(request, false, cancellationToken);
@@ -151,11 +158,11 @@ namespace Autodesk.Forge.Core
 
         protected virtual async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
         {
-            if (request.Options.TryGetValue(ForgeConfiguration.ScopeKey, out var scope))
+            if (request.Properties.TryGetValue(ForgeConfiguration.ScopeKey, out var scope))
             {
-                var user = string.Empty;
-                request.Options.TryGetValue(ForgeConfiguration.AgentKey, out user);
-                var cacheKey = user + scope;
+                object user;
+                request.Properties.TryGetValue(ForgeConfiguration.AgentKey, out user);
+                var cacheKey = (string)user + scope;
                 // it is possible that multiple threads get here at the same time, only one of them should 
                 // attempt to refresh the token. 
                 // NOTE: We could use different semaphores for different cacheKey here. It is a minor optimization.
@@ -165,7 +172,7 @@ namespace Autodesk.Forge.Core
                     if (ignoreCache || !TokenCache.TryGetValue(cacheKey, out var token))
                     {
                         TimeSpan expiry;
-                        (token, expiry) = await this.Get2LeggedTokenAsync(user, scope, cancellationToken);
+                        (token, expiry) = await this.Get2LeggedTokenAsync((string)user, (string)scope, cancellationToken);
                         TokenCache.Add(cacheKey, token, expiry);
                     }
                     request.Headers.Authorization = AuthenticationHeaderValue.Parse(token);

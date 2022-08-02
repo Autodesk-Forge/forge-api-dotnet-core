@@ -1,13 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Autodesk Forge Team</Authors>
     <Company>Autodesk</Company>
     <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks e2e tests</Description>
     <Copyright>Autodesk Inc.</Copyright>
-    <Version>3.0.0</Version>
+    <Version>2.0.0</Version>
+    <PackageId>Autodesk.Forge.Core.E2eTestHelpers.NetStandard</PackageId>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core</PackageProjectUrl>
     <PackageIcon>logo_forge-2-line.png</PackageIcon>

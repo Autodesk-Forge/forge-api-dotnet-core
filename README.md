@@ -1,14 +1,14 @@
 # Autodesk.Forge.Core
 
 ![SDK](https://img.shields.io/badge/SDK-3.0.0-lightgree.svg)
-![.NET](https://img.shields.io/badge/.NET%20-6.0-blue.svg)
+![.NET](https://img.shields.io/badge/.NET%20Standard-2.0-blue.svg)
 ![BUILD](https://github.com/Autodesk-Forge/forge-api-dotnet-core/workflows/.NET%20Core/badge.svg?branch=main)
 
 ## Overview
 
 ### Requirements
 
-- .NET 6 or later
+- .NET Standard 2.0 or later
 
 ### Dependencies
 

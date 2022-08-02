@@ -16,9 +16,14 @@
  * limitations under the License.
  */
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web;
+
 
 namespace Autodesk.Forge.Core
 {

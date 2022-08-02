@@ -15,14 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
 
 namespace Autodesk.Forge.Core
 {
     public class ForgeConfiguration
-    {
-        public static readonly HttpRequestOptionsKey<string> AgentKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Agent");
-        public static readonly HttpRequestOptionsKey<string> ScopeKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Scope");
-        public static readonly HttpRequestOptionsKey<int> TimeoutKey = new HttpRequestOptionsKey<int>("Autodesk.Forge.Timeout");
+    {     
+        public const string AgentKey = "Autodesk.Forge.Agent";
+        public const string ScopeKey = "Autodesk.Forge.Scope";
+        public const string TimeoutKey = "Autodesk.Forge.Timeout";
 
         public ForgeConfiguration()
         {

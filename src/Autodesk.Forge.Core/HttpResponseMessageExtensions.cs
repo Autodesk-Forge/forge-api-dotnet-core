@@ -15,7 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+using System;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Autodesk.Forge.Core
 {
@@ -39,26 +43,9 @@ namespace Autodesk.Forge.Core
                 }
                 var message = $"The server returned the non-success status code {(int)msg.StatusCode} ({msg.ReasonPhrase}).{errorMessage}";
 
-                if (msg.StatusCode == HttpStatusCode.TooManyRequests)
-                {
-                    var retryAfterHeader = msg.Headers.RetryAfter.Delta;
-                    throw new TooManyRequestsException(message, msg.StatusCode, retryAfterHeader);
-                }
-                
-                throw new HttpRequestException(message, null, msg.StatusCode);
+                throw new HttpRequestException(message, null);
             }
             return msg;
         }
-    }
-
-    public class TooManyRequestsException : HttpRequestException
-    {
-        public TooManyRequestsException(string message, HttpStatusCode statusCode, TimeSpan? retryAfter)
-            :base(message, null, statusCode)
-        {
-            this.RetryAfter = retryAfter;
-        }
-        
-        public TimeSpan? RetryAfter { get; init; }
     }
 }

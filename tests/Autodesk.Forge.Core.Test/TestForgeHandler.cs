@@ -2,9 +2,16 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Autodesk.Forge.Core.Test
@@ -49,7 +56,7 @@ namespace Autodesk.Forge.Core.Test
             var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(new ForgeConfiguration())));
             var req = new HttpRequestMessage();
             req.RequestUri = new Uri("http://example.com");
-            req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
+            req.Properties.Add(ForgeConfiguration.ScopeKey, "somescope");
             await Assert.ThrowsAsync<ArgumentNullException>($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientId)}", () => fh.SendAsync(req, CancellationToken.None));
         }
 
@@ -59,7 +66,7 @@ namespace Autodesk.Forge.Core.Test
             var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(new ForgeConfiguration() { ClientId = "ClientId" })));
             var req = new HttpRequestMessage();
             req.RequestUri = new Uri("http://example.com");
-            req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
+            req.Properties.Add(ForgeConfiguration.ScopeKey, "somescope");
             await Assert.ThrowsAsync<ArgumentNullException>($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}", () => fh.SendAsync(req, CancellationToken.None));
         }
         
@@ -89,7 +96,7 @@ namespace Autodesk.Forge.Core.Test
 
             var req = new HttpRequestMessage();
             req.RequestUri = new Uri("http://example.com");
-            req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
+            req.Properties.Add(ForgeConfiguration.ScopeKey, "somescope");
             await fh.SendAsync(req, CancellationToken.None);
 
             sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()), Times.Once());
@@ -121,7 +128,7 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()))
                 .Callback<HttpRequestMessage, CancellationToken>((r, ct) =>
                 {
-                    var stream = r.Content.ReadAsStream();
+                    var stream = r.Content.ReadAsStreamAsync().Result;
                     int length = (int)stream.Length;
                     var buffer = new byte[length];
                     stream.Read(buffer, 0, length);
@@ -131,7 +138,15 @@ namespace Autodesk.Forge.Core.Test
                     actualClientSecret = GetValue("client_secret");
                     string GetValue(string key)
                     {
-                        return (from m in matches where m.Groups["key"].Value == key select m.Groups["value"].Value).Single();
+                        for (int i = 0; i < matches.Count; i++)
+                        {
+                            var match = matches[i];
+                            if(match.Groups["key"].Value == key)
+                            {
+                               return match.Groups["value"].Value;
+                            }   
+                        }
+                        return null;
                     }
                 })
                 .ReturnsAsync(new HttpResponseMessage()
@@ -151,8 +166,8 @@ namespace Autodesk.Forge.Core.Test
             });
 
             req.RequestUri = new Uri("http://example.com");
-            req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
-            req.Options.Set(ForgeConfiguration.AgentKey, "user1");
+            req.Properties.Add(ForgeConfiguration.ScopeKey, "somescope");
+            req.Properties.Add(ForgeConfiguration.AgentKey, "user1");
             await fh.SendAsync(req, CancellationToken.None);
 
             Assert.Equal(config.Agents["user1"].ClientId, actualClientId);
@@ -204,7 +219,7 @@ namespace Autodesk.Forge.Core.Test
 
             var invoker = new HttpMessageInvoker(fh);
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             await invoker.SendAsync(req, CancellationToken.None);
 
             sink.VerifyAll();
@@ -247,7 +262,7 @@ namespace Autodesk.Forge.Core.Test
 
             var invoker = new HttpMessageInvoker(fh);
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             await invoker.SendAsync(req, CancellationToken.None);
 
             sink.VerifyAll();
@@ -271,7 +286,7 @@ namespace Autodesk.Forge.Core.Test
                  {
                      Content = new StringContent(JsonConvert.SerializeObject(new Dictionary<string, string> { { "token_type", "Bearer" }, { "access_token", newToken }, { "expires_in", "3" } })),
                      StatusCode = System.Net.HttpStatusCode.OK
-                 }, TweakableForgeHandler.DefaultTimeout/2
+                 }, TimeSpan.FromMilliseconds(TweakableForgeHandler.DefaultTimeout.TotalMilliseconds/2)
                  );
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == requestUri && r.Headers.Authorization.Parameter == newToken), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage()
@@ -296,7 +311,7 @@ namespace Autodesk.Forge.Core.Test
                 req.RequestUri = requestUri;
                 var invoker = new HttpMessageInvoker(fh);
 
-                req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+                req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
                 await invoker.SendAsync(req, CancellationToken.None);
             };
 
@@ -336,7 +351,7 @@ namespace Autodesk.Forge.Core.Test
 
             var invoker = new HttpMessageInvoker(fh);
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             var resp = await invoker.SendAsync(req, CancellationToken.None);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, resp.StatusCode);
@@ -374,7 +389,7 @@ namespace Autodesk.Forge.Core.Test
 
             var invoker = new HttpMessageInvoker(fh);
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             var resp = await invoker.SendAsync(req, CancellationToken.None);
 
@@ -425,7 +440,7 @@ namespace Autodesk.Forge.Core.Test
 
             var invoker = new HttpMessageInvoker(fh);
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             var resp = await invoker.SendAsync(req, CancellationToken.None);
 
             Assert.Equal(System.Net.HttpStatusCode.GatewayTimeout, resp.StatusCode);
@@ -454,7 +469,7 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri && r.Headers.Authorization.Parameter == cachedToken), It.IsAny<CancellationToken>()))
                 .Returns(async (HttpRequestMessage r, CancellationToken ct) =>
                 {
-                    await Task.Delay(TweakableForgeHandler.DefaultTimeout*2);
+                    await Task.Delay(TimeSpan.FromMilliseconds(TweakableForgeHandler.DefaultTimeout.TotalMilliseconds*2));
                     ct.ThrowIfCancellationRequested();
                     return new HttpResponseMessage() { StatusCode = System.Net.HttpStatusCode.OK };
                 });
@@ -469,7 +484,7 @@ namespace Autodesk.Forge.Core.Test
 
             var invoker = new HttpMessageInvoker(fh);
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             await Assert.ThrowsAsync<Polly.Timeout.TimeoutRejectedException>(async () => await invoker.SendAsync(req, new CancellationToken()));
 
             sink.VerifyAll();
@@ -506,7 +521,7 @@ namespace Autodesk.Forge.Core.Test
 
             var invoker = new HttpMessageInvoker(fh);
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, scope);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, scope);
             // We tolerate 3 failures before we break the circuit
             for (int i = 0; i < 3; i++)
             {
@@ -620,8 +635,8 @@ namespace Autodesk.Forge.Core.Test
                         RequestUri = new Uri("http://example.com")
                     };
 
-            req.Options.Set(ForgeConfiguration.ScopeKey, Scope);
-            req.Options.Set(ForgeConfiguration.TimeoutKey, timeout);
+            req.Properties.Add(ForgeConfiguration.ScopeKey, Scope);
+            req.Properties.Add(ForgeConfiguration.TimeoutKey, timeout);
 
             return req;
         }

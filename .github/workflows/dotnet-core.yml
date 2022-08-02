@@ -1,4 +1,4 @@
-name: .NET Core
+name: .NET Standard
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 2.2.108
     
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2

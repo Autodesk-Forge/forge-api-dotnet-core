@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Autodesk Forge</Authors>
 	  <owners>Autodesk Forge</owners>
@@ -8,10 +9,10 @@
     <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks</Description>
     <Copyright>Autodesk Inc.</Copyright>
-    <Version>3.0.1</Version>
-	<AssemblyVersion>3.0.1.0</AssemblyVersion>
-    <FileVersion>3.0.1.0</FileVersion>
-	  <PackageId>Autodesk.Forge.Core</PackageId>
+    <Version>2.0.0</Version>
+	<AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+	  <PackageId>Autodesk.Forge.Core.NetStandard</PackageId>
 	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core</PackageProjectUrl>
     <PackageIcon>logo_forge-2-line.png</PackageIcon>

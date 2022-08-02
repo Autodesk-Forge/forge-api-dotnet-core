@@ -4,8 +4,14 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using Xunit;
+
 
 namespace Autodesk.Forge.Core.Test
 {
@@ -38,9 +44,9 @@ namespace Autodesk.Forge.Core.Test
             var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>().Value;
             var req = new HttpRequestMessage();
             req.RequestUri = new Uri("http://example.com");
-            req.Options.Set(ForgeConfiguration.ScopeKey, "somescope");
+            req.Properties.Add(ForgeConfiguration.ScopeKey, "somescope");
 
-            string user = null;
+            object user = null;
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage()
                 {
@@ -50,7 +56,7 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri), It.IsAny<CancellationToken>()))
                 .Callback<HttpRequestMessage, CancellationToken>((r, ct) =>
                 {
-                    r.Options.TryGetValue(ForgeConfiguration.AgentKey, out user);
+                    r.Properties.TryGetValue(ForgeConfiguration.AgentKey, out user);
                 })
                 .ReturnsAsync(new HttpResponseMessage()
                 {
@@ -64,7 +70,7 @@ namespace Autodesk.Forge.Core.Test
 
             sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()), Times.Once());
             sink.Protected().As<HttpMessageInvoker>().Verify(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == req.RequestUri), It.IsAny<CancellationToken>()), Times.Once());
-            Assert.Equal("user1", user);
+            Assert.Equal("user1", (string)user);
         }
     }
 }
