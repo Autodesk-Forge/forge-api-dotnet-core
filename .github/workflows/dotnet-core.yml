@@ -2,9 +2,9 @@ name: .NET Standard
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, DotNetStandard2 ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, DotNetStandard2 ]
 
 jobs:
   build:
