@@ -46,7 +46,7 @@ jobs:
     
     - name: Publish
       id: publish_to_Nuget
-      if: ${{ github.event_name =='push' && github.ref == 'refs/heads/main'}}
+      if: ${{ github.event_name =='push' && github.ref == 'refs/heads/main' && github.ref == 'refs/heads/DotNetStandard2'}}
       run: |
        dotnet msbuild src/Autodesk.Forge.Core/Autodesk.Forge.Core.csproj /t:Push
        dotnet msbuild src/Autodesk.Forge.Core.E2eTestHelpers/Autodesk.Forge.Core.E2eTestHelpers.csproj /t:Push
