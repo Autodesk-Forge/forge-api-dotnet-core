@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="xunit.assert" Version="2.4.1" />
-    <PackageReference Include="xunit.core" Version="2.4.1" />
+    <PackageReference Include="xunit.core" Version="2.4.2" />
   </ItemGroup>
   <PropertyGroup>
     <IsTestProject>false</IsTestProject>
