@@ -191,12 +191,13 @@ namespace Autodesk.Forge.Core
                 {
                     throw new ArgumentNullException($"{nameof(ForgeConfiguration)}.{nameof(ForgeConfiguration.ClientSecret)}");
                 }
-                var values = new List<KeyValuePair<string, string>>();
-                values.Add(new KeyValuePair<string, string>("client_id", clientId));
-                values.Add(new KeyValuePair<string, string>("client_secret", clientSecret));
-                values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
-                values.Add(new KeyValuePair<string, string>("scope", scope));
-                request.Content = new FormUrlEncodedContent(values);
+                var clientIdSecret = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
+                request.Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                    new KeyValuePair<string, string>("scope", scope)
+                });
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", clientIdSecret);
                 request.RequestUri = config.AuthenticationAddress;
                 request.Method = HttpMethod.Post;
 

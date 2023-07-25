@@ -26,7 +26,7 @@ namespace Autodesk.Forge.Core
 
         public ForgeConfiguration()
         {
-            this.AuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v1/authenticate");
+            this.AuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v2/token");
         }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
