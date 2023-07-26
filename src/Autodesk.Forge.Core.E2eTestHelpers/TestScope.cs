@@ -46,7 +46,7 @@ namespace Autodesk.Forge.Core.E2eTestHelpers
 
         private bool IsAuthentication(HttpRequestMessage request)
         {
-            return request.RequestUri.ToString().Contains("authenticate");
+            return request.RequestUri.ToString().Contains("authentication/v2/token");
         }
         protected bool TryRecordAuthentication(HttpResponseMessage response)
         {

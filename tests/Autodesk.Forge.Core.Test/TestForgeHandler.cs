@@ -121,18 +121,9 @@ namespace Autodesk.Forge.Core.Test
             sink.Protected().As<HttpMessageInvoker>().Setup(o => o.SendAsync(It.Is<HttpRequestMessage>(r => r.RequestUri == config.AuthenticationAddress), It.IsAny<CancellationToken>()))
                 .Callback<HttpRequestMessage, CancellationToken>((r, ct) =>
                 {
-                    var stream = r.Content.ReadAsStream();
-                    int length = (int)stream.Length;
-                    var buffer = new byte[length];
-                    stream.Read(buffer, 0, length);
-                    var content = Encoding.UTF8.GetString(buffer);
-                    var matches = Regex.Matches(content, "(?<key>[^=&]+)=(?<value>[^&]+)");
-                    actualClientId = GetValue("client_id");
-                    actualClientSecret = GetValue("client_secret");
-                    string GetValue(string key)
-                    {
-                        return (from m in matches where m.Groups["key"].Value == key select m.Groups["value"].Value).Single();
-                    }
+                    var clientIdSecret = Encoding.UTF8.GetString(Convert.FromBase64String(r.Headers.Authorization.Parameter)).Split(':');
+                    actualClientId = clientIdSecret[0];
+                    actualClientSecret = clientIdSecret[1];
                 })
                 .ReturnsAsync(new HttpResponseMessage()
                 {
