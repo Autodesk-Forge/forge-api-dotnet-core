@@ -26,17 +26,17 @@ jobs:
         dotnet-version: 6.0.x
     
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
     
     - name: Autobuild
       id: build
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
     
     - name: Perform CodeQL Analysis
       id: CodeQL_analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
     
     - name: Test
       id: test
