@@ -8,7 +8,7 @@
 
 ### Requirements
 
-- .NET 6 or later
+- .NET 8 or later
 
 ### Dependencies
 
