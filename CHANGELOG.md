@@ -1,3 +1,7 @@
+### 4.0.0.0
+
+* Migrate to .Net 8
+
 ### 3.0.0.0
 
 * Migrate to .Net 6

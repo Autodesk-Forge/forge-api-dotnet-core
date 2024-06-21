@@ -37,14 +37,14 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestNoRequestUriThrows()
+        public async Task TestNoRequestUriThrows()
         {
             var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(new ForgeConfiguration())));
             await Assert.ThrowsAsync<ArgumentNullException>($"{nameof(HttpRequestMessage)}.{nameof(HttpRequestMessage.RequestUri)}", () => fh.SendAsync(new HttpRequestMessage(), CancellationToken.None));
         }
 
         [Fact]
-        public async void TestNoClientIdThrows()
+        public async Task TestNoClientIdThrows()
         {
             var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(new ForgeConfiguration())));
             var req = new HttpRequestMessage();
@@ -54,7 +54,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestNoClientSecretThrows()
+        public async Task TestNoClientSecretThrows()
         {
             var fh = new HttpMessageInvoker(new ForgeHandler(Options.Create(new ForgeConfiguration() { ClientId = "ClientId" })));
             var req = new HttpRequestMessage();
@@ -64,7 +64,7 @@ namespace Autodesk.Forge.Core.Test
         }
         
         [Fact]
-        public async void TestFirstCallAuthenticates()
+        public async Task TestFirstCallAuthenticates()
         {
             var sink = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             sink.Protected().As<HttpMessageInvoker>().SetupSequence(o => o.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
@@ -97,7 +97,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestFirstCallAuthenticatesNonDefaultUser()
+        public async Task TestFirstCallAuthenticatesNonDefaultUser()
         {
             var req = new HttpRequestMessage();
             var config = new ForgeConfiguration()
@@ -153,7 +153,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestRetryOnceOnAuthenticationFailure()
+        public async Task TestRetryOnceOnAuthenticationFailure()
         {
             var newToken = "newToken";
             var cachedToken = "cachedToken";
@@ -202,7 +202,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestRefreshExpiredToken()
+        public async Task TestRefreshExpiredToken()
         {
             var newToken = "newToken";
             var cachedToken = "cachedToken";
@@ -245,7 +245,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestRefreshExpiredTokenByOneThreadOnly()
+        public async Task TestRefreshExpiredTokenByOneThreadOnly()
         {
             var newToken = "newToken";
             var cachedToken = "cachedToken";
@@ -300,7 +300,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestUseGoodToken()
+        public async Task TestUseGoodToken()
         {
             var cachedToken = "cachedToken";
             var req = new HttpRequestMessage();
@@ -339,7 +339,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestNoRefreshOnClientProvidedToken()
+        public async Task TestNoRefreshOnClientProvidedToken()
         {
             var token = "blabla";
             var req = new HttpRequestMessage();
@@ -382,7 +382,7 @@ namespace Autodesk.Forge.Core.Test
     public class TestForgeHandler2
     {
         [Fact]
-        public async void TestCorrectNumberOfRetries()
+        public async Task TestCorrectNumberOfRetries()
         {
             var cachedToken = "cachedToken";
             var req = new HttpRequestMessage();
@@ -431,7 +431,7 @@ namespace Autodesk.Forge.Core.Test
     public class TestForgeHandler3
     {
         [Fact]
-        public async void TestTimeout()
+        public async Task TestTimeout()
         {
             var cachedToken = "cachedToken";
             var req = new HttpRequestMessage();
@@ -470,7 +470,7 @@ namespace Autodesk.Forge.Core.Test
     public class TestForgeHandler4
     { 
         [Fact]
-        public async void TestCircuitBreaker()
+        public async Task TestCircuitBreaker()
         {
             var cachedToken = "cachedToken";
             var req = new HttpRequestMessage();
@@ -529,7 +529,7 @@ namespace Autodesk.Forge.Core.Test
                                                             };
 
         [Fact]
-        public async void TestTriggeredTimeout()
+        public async Task TestTriggeredTimeout()
         {
             var (sink, requestSender) = GetReady(1, TimeSpan.FromMilliseconds(1100));
             await Assert.ThrowsAsync<Polly.Timeout.TimeoutRejectedException>(async () => await requestSender());
@@ -538,7 +538,7 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
-        public async void TestNoTimeout()
+        public async Task TestNoTimeout()
         {
             var (sink, requestSender) = GetReady(1, TimeSpan.FromMilliseconds(100));
 

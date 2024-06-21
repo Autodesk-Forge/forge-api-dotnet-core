@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.106
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Autodesk.Forge.Core", "src\Autodesk.Forge.Core\Autodesk.Forge.Core.csproj", "{E59655EF-C1BF-4318-B344-B2C6B67E1A74}"
 EndProject

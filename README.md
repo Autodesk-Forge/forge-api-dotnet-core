@@ -12,8 +12,8 @@
 
 ### Dependencies
 
-- [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) 13.0.1 or later
-- [Polly](https://github.com/App-vNext/Polly) 7.2.3 or later
+- [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
+- [Polly](https://github.com/App-vNext/Polly)
 
 ### Changelog
 

@@ -6,33 +6,33 @@ namespace Autodesk.Forge.Core.Test
     public class TestMarshalling
     {
         [Fact]
-        public async void TestDeserializeThrowsOnNull()
+        public async Task TestDeserializeThrowsOnNull()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => Marshalling.DeserializeAsync<string>(null));
         }
 
         [Fact]
-        public async void TestDeserializeNonJsonThrows()
+        public async Task TestDeserializeNonJsonThrows()
         {
             await Assert.ThrowsAsync<ArgumentException>(() => Marshalling.DeserializeAsync<string>(new ByteArrayContent(new byte[] { 0, 2, 3 })));
         }
 
         [Fact]
-        public async void TestDeserializeValidString()
+        public async Task TestDeserializeValidString()
         {
             var ret = await Marshalling.DeserializeAsync<string>(new StringContent("\"bla\"", Encoding.UTF8, "application/json"));
             Assert.Equal("bla", ret);
         }
 
         [Fact]
-        public async void TestDeserializeNull()
+        public async Task TestDeserializeNull()
         {
             var ret = await Marshalling.DeserializeAsync<string>(new StringContent("null", Encoding.UTF8, "application/json"));
             Assert.Null(ret);
         }
 
         [Fact]
-        public async void TestDeserializeNullInvalid()
+        public async Task TestDeserializeNullInvalid()
         {
             await Assert.ThrowsAsync <Newtonsoft.Json.JsonSerializationException>(() => Marshalling.DeserializeAsync<int>(new StringContent("null", Encoding.UTF8, "application/json")));
         }
