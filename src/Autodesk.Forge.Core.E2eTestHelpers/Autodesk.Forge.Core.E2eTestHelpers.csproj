@@ -1,36 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Autodesk Forge Team</Authors>
-    <Company>Autodesk</Company>
-    <Product>Autodesk Forge</Product>
     <Description>Shared code for Forge client sdks e2e tests</Description>
-    <Copyright>Autodesk Inc.</Copyright>
-    <Version>3.0.1</Version>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Autodesk-Forge/forge-api-dotnet-core</PackageProjectUrl>
-    <PackageIcon>logo_forge-2-line.png</PackageIcon>
-    <PackageReleaseNotes>For full release notes see https://github.com/Autodesk-Forge/forge-api-dotnet-core/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <PackageVersion>4.0.0</PackageVersion>
+    <IsTestProject>false</IsTestProject>
+    <NoWarn>NU5100</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\images\logo_forge-2-line.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="xunit.assert" Version="2.6.4" />
-    <PackageReference Include="xunit.core" Version="2.6.6" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.0">
+    <PackageReference Include="xunit.assert" Version="2.8.1" />
+    <PackageReference Include="xunit.core" Version="2.8.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  <PropertyGroup>
-    <IsTestProject>false</IsTestProject>
-  </PropertyGroup>
 
-  <Import Project="../../nuget.targets" />
 </Project>

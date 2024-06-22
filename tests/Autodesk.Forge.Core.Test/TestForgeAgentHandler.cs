@@ -12,7 +12,7 @@ namespace Autodesk.Forge.Core.Test
     public class TestForgeAgentHandler
     {
         [Fact]
-        public async void TestUser()
+        public async Task TestUser()
         {
             var json = @"
             {
