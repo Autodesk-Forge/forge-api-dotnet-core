@@ -18,19 +18,50 @@
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Represents the configuration settings for the Forge SDK.
+    /// </summary>
     public class ForgeConfiguration
     {
+        /// <summary>
+        /// Represents the key for the Forge agent in the HTTP request options.
+        /// </summary>
         public static readonly HttpRequestOptionsKey<string> AgentKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Agent");
+        /// <summary>
+        /// Represents the key for the Forge scope in the HTTP request options.
+        /// </summary>
         public static readonly HttpRequestOptionsKey<string> ScopeKey = new HttpRequestOptionsKey<string>("Autodesk.Forge.Scope");
+        /// <summary>
+        /// Represents the key for the Forge timeout in the HTTP request options.
+        /// </summary>
         public static readonly HttpRequestOptionsKey<int> TimeoutKey = new HttpRequestOptionsKey<int>("Autodesk.Forge.Timeout");
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ForgeConfiguration"/> class.
+        /// </summary>
         public ForgeConfiguration()
         {
             this.AuthenticationAddress = new Uri("https://developer.api.autodesk.com/authentication/v2/token");
         }
+
+        /// <summary>
+        /// Gets or sets the client ID.
+        /// </summary>
         public string ClientId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the client secret.
+        /// </summary>
         public string ClientSecret { get; set; }
+
+        /// <summary>
+        /// Gets or sets the dictionary of Forge agent configurations.
+        /// </summary>
         public IDictionary<string, ForgeAgentConfiguration> Agents { get; set; }
+
+        /// <summary>
+        /// Gets or sets the authentication address.
+        /// </summary>
         public Uri AuthenticationAddress { get; set; }
     }
 }
