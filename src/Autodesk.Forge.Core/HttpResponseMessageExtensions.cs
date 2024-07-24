@@ -51,14 +51,26 @@ namespace Autodesk.Forge.Core
         }
     }
 
+    /// <summary>
+    /// Exception thrown when the server returns a TooManyRequests status code.
+    /// </summary>
     public class TooManyRequestsException : HttpRequestException
     {
+        /// <summary>
+        /// Exception thrown when the server returns a TooManyRequests status code.
+        /// </summary>
+        /// <param name="message">Exception message.</param>
+        /// <param name="statusCode">Status code.</param>
+        /// <param name="retryAfter">Retry after time.</param>
         public TooManyRequestsException(string message, HttpStatusCode statusCode, TimeSpan? retryAfter)
             :base(message, null, statusCode)
         {
             this.RetryAfter = retryAfter;
         }
-        
+
+        /// <summary>
+        /// Retry after time.
+        /// </summary>
         public TimeSpan? RetryAfter { get; init; }
     }
 }
