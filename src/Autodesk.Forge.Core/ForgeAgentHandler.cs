@@ -18,15 +18,33 @@
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Represents a handler for Forge agents.
+    /// </summary>
     public class ForgeAgentHandler : DelegatingHandler
     {
+        /// <summary>
+        /// The default agent name.
+        /// </summary>
         public const string defaultAgentName = "default";
-        
+
         private string user;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ForgeAgentHandler"/> class.
+        /// </summary>
+        /// <param name="user">The user associated with the agent.</param>
         public ForgeAgentHandler(string user)
         {
             this.user = user;
         }
+
+        /// <summary>
+        /// Sends an HTTP request asynchronously.
+        /// </summary>
+        /// <param name="request">The HTTP request message.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The task representing the asynchronous operation.</returns>
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             request.Options.TryAdd(ForgeConfiguration.AgentKey.Key, user);
