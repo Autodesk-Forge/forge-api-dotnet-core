@@ -19,8 +19,18 @@ using System.Net;
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Ensures that the HTTP response message is a success status code. Throws exceptions for non-success status codes.
+    /// </summary>
     public static class HttpResponseMessageExtensions
     {
+        /// <summary>
+        /// Ensures that the HTTP response message is a success status code. Throws exceptions for non-success status codes.
+        /// </summary>
+        /// <param name="msg">The HTTP response message.</param>
+        /// <returns>The original HTTP response message if it is a success status code.</returns>
+        /// <exception cref="TooManyRequestsException">Thrown when the server returns a TooManyRequests status code.</exception>
+        /// <exception cref="HttpRequestException">Thrown when the server returns a non-success status code other than TooManyRequests.</exception>
         public static async Task<HttpResponseMessage> EnsureSuccessStatusCodeAsync(this HttpResponseMessage msg)
         {
             string errorMessage = string.Empty;
