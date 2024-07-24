@@ -2,7 +2,6 @@
   
   <PropertyGroup>
     <Description>Shared code for APS client sdks</Description>
-    <PackageVersion>$(Version)</PackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
