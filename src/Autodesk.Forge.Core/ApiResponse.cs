@@ -23,6 +23,10 @@ namespace Autodesk.Forge.Core
     /// </summary>
     public class ApiResponse : IDisposable
     {
+        /// <summary>
+        /// Gets or sets the HTTP response message.
+        /// </summary>
+        /// <value>The HTTP response message.</value>
         public HttpResponseMessage HttpResponse { get; private set; }
 
         /// <summary>
@@ -34,6 +38,9 @@ namespace Autodesk.Forge.Core
             this.HttpResponse = response;
         }
 
+        /// <summary>
+        /// Disposes the API response.
+        /// </summary>
         public void Dispose()
         {
             HttpResponse?.Dispose();
@@ -55,7 +62,7 @@ namespace Autodesk.Forge.Core
         /// Initializes a new instance of the <see cref="ApiResponse&lt;T&gt;" /> class.
         /// </summary>
         /// <param name="response">Http response message.</param>
-        /// <param name="data">content (parsed HTTP body)</param>
+        /// <param name="content">content (parsed HTTP body)</param>
         public ApiResponse(HttpResponseMessage response, T content)
             : base(response)
         {
