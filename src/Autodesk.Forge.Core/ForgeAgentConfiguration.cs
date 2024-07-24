@@ -18,9 +18,19 @@
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Represents the configuration for the Forge Agent.
+    /// </summary>
     public class ForgeAgentConfiguration
     {
+        /// <summary>
+        /// Gets or sets the client ID.
+        /// </summary>
         public string ClientId { get; init; }
+
+        /// <summary>
+        /// Gets or sets the client secret.
+        /// </summary>
         public string ClientSecret { get; init; }
     }
 }
