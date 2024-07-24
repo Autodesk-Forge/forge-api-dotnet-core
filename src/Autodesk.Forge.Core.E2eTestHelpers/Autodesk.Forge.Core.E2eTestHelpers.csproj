@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Shared code for Forge client sdks e2e tests</Description>
-    <PackageVersion>4.0.0</PackageVersion>
+    <PackageVersion>$(Version)</PackageVersion>
     <IsTestProject>false</IsTestProject>
     <NoWarn>NU5100</NoWarn>
   </PropertyGroup>
