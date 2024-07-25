@@ -20,6 +20,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Extensions for adding ForgeService to the IServiceCollection.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>
@@ -27,9 +30,9 @@ namespace Autodesk.Forge.Core
         /// the values underneath.
         /// Also adds ForgeService as a typed HttpClient with ForgeHandler as its MessageHandler.
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
+        /// <param name="services">The IServiceCollection to add the ForgeService to.</param>
+        /// <param name="configuration">The IConfiguration containing the Forge configuration.</param>
+        /// <returns>The IHttpClientBuilder for further configuration.</returns>
         public static IHttpClientBuilder AddForgeService(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
@@ -39,6 +42,17 @@ namespace Autodesk.Forge.Core
                 .AddHttpMessageHandler<ForgeHandler>();
         }
 
+
+        /// <summary>
+        /// Adds the ForgeService to the IServiceCollection with the provided user and configuration.
+        /// It configures the ForgeConfiguration using the "Forge" section of the provided configuration.
+        /// It also adds the ForgeHandler as a transient service.
+        /// Finally, it adds the ForgeService as a typed HttpClient with the ForgeHandler as its MessageHandler.
+        /// </summary>
+        /// <param name="services">The IServiceCollection to add the ForgeService to.</param>
+        /// <param name="user">The user associated with the ForgeService.</param>
+        /// <param name="configuration">The IConfiguration containing the Forge configuration.</param>
+        /// <returns>The IHttpClientBuilder for further configuration.</returns>
         public static IHttpClientBuilder AddForgeService(this IServiceCollection services, string user, IConfiguration configuration)
         {
             services.AddOptions();

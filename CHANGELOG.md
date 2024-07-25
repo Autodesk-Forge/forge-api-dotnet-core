@@ -1,3 +1,7 @@
+### 4.0.1
+
+* Add Documentation in the `Autodesk.Forge.Core` project.
+
 ### 4.0.0.0
 
 * Migrate to .Net 8

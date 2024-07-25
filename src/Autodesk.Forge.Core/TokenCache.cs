@@ -18,9 +18,24 @@
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Represents a cache for storing access tokens.
+    /// </summary>
     public interface ITokenCache
     {
+        /// <summary>
+        /// Adds an access token to the cache.
+        /// </summary>
+        /// <param name="key">The key associated with the access token.</param>
+        /// <param name="value">The access token to be added.</param>
+        /// <param name="expiresIn">The time span indicating the expiration time of the access token.</param>
         void Add(string key, string value, TimeSpan expiresIn);
+        /// <summary>
+        /// Tries to get the access token from the cache.
+        /// </summary>
+        /// <param name="key">The key associated with the access token.</param>
+        /// <param name="value">The retrieved access token, if found.</param>
+        /// <returns><c>true</c> if the access token is found in the cache and not expired; otherwise, <c>false</c>.</returns>
         bool TryGetValue(string key, out string value);
     }
 

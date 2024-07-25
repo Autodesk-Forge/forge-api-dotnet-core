@@ -22,6 +22,9 @@ using System.Web;
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Marshalling utilities.
+    /// </summary>
     public partial class Marshalling
     {
         private static string ParameterToString(object obj)
@@ -44,7 +47,7 @@ namespace Autodesk.Forge.Core
         /// <returns>Object representation of the JSON string.</returns>
         public static async Task<T> DeserializeAsync<T>(HttpContent content)
         {
-            if (content==null)
+            if (content == null)
             {
                 throw new ArgumentNullException(nameof(content));
             }
@@ -69,13 +72,21 @@ namespace Autodesk.Forge.Core
             return new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
         }
 
+        /// <summary>
+        /// Builds a request URI based on the provided relative path, route parameters, and query parameters.
+        /// </summary>
+        /// <param name="relativePath">The relative path of the request URI.</param>
+        /// <param name="routeParameters">The route parameters to be replaced in the relative path.</param>
+        /// <param name="queryParameters">The query parameters to be added to the request URI.</param>
+        /// <returns>The built request URI.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when relativePath, routeParameters, or queryParameters is null.</exception>
         public static Uri BuildRequestUri(string relativePath, IDictionary<string, object> routeParameters, IDictionary<string, object> queryParameters)
         {
             if (relativePath == null)
             {
                 throw new ArgumentNullException(nameof(relativePath));
             }
-            if (routeParameters==null)
+            if (routeParameters == null)
             {
                 throw new ArgumentNullException(nameof(routeParameters));
             }
@@ -90,7 +101,7 @@ namespace Autodesk.Forge.Core
             relativePath = relativePath.TrimStart('/');
 
             // replace path parameters, note that + only needs to be encoded in the query string not in the path.
-            relativePath = Regex.Replace(relativePath, @"\{(?<key>\w+)\}", m => HttpUtility.UrlEncode(ParameterToString(routeParameters[m.Groups["key"].Value])).Replace("%2b","+"));
+            relativePath = Regex.Replace(relativePath, @"\{(?<key>\w+)\}", m => HttpUtility.UrlEncode(ParameterToString(routeParameters[m.Groups["key"].Value])).Replace("%2b", "+"));
 
             // add query parameters
             var query = new StringBuilder();
@@ -102,7 +113,7 @@ namespace Autodesk.Forge.Core
                 }
             }
 
-            if (query.Length>0)
+            if (query.Length > 0)
             {
                 query.Insert(0, "?");
                 relativePath += query.ToString();

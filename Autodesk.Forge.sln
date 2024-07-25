@@ -9,6 +9,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Autodesk.Forge.Core.Test", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Autodesk.Forge.Core.E2eTestHelpers", "src\Autodesk.Forge.Core.E2eTestHelpers\Autodesk.Forge.Core.E2eTestHelpers.csproj", "{66694EE2-D632-476D-B533-589AC9B975F3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{BC49E389-CECC-489D-ACE8-BB97869391B9}"
+	ProjectSection(SolutionItems) = preProject
+		CHANGELOG.md = CHANGELOG.md
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3E0D0E6A-0664-491F-93E8-0290B21C3D09}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+		src\Directory.Build.targets = src\Directory.Build.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6E857E79-2F5E-4B70-996D-A42A445F67B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +46,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E59655EF-C1BF-4318-B344-B2C6B67E1A74} = {3E0D0E6A-0664-491F-93E8-0290B21C3D09}
+		{B52C434A-3AA1-4CA7-9F88-39AA2C208A67} = {6E857E79-2F5E-4B70-996D-A42A445F67B4}
+		{66694EE2-D632-476D-B533-589AC9B975F3} = {3E0D0E6A-0664-491F-93E8-0290B21C3D09}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D05CFF55-5724-433F-9941-337DC508F5FE}

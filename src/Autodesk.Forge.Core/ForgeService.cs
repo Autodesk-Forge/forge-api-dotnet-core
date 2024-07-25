@@ -20,15 +20,29 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Represents a service for interacting with the Autodesk Forge platform.
+    /// </summary>
     public class ForgeService
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ForgeService"/> class with the specified <see cref="HttpClient"/>.
+        /// </summary>
+        /// <param name="client">The <see cref="HttpClient"/> instance to be used for making HTTP requests.</param>
         public ForgeService(HttpClient client)
         {
             this.Client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
+        /// <summary>
+        /// Gets the <see cref="HttpClient"/> instance used by the Forge service.
+        /// </summary>
         public HttpClient Client { get; private set; }
 
+        /// <summary>
+        /// Creates a default instance of the <see cref="ForgeService"/> class.
+        /// </summary>
+        /// <returns>A default instance of the <see cref="ForgeService"/> class.</returns>
         public static ForgeService CreateDefault()
         {
             var configuration = new ConfigurationBuilder()

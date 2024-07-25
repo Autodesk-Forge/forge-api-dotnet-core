@@ -23,33 +23,61 @@ using System.Net.Http.Headers;
 
 namespace Autodesk.Forge.Core
 {
+    /// <summary>
+    /// Represents a handler for Forge API requests.
+    /// </summary>
     public class ForgeHandler : DelegatingHandler
     {
         private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         private readonly Random rand = new Random();
         private readonly IAsyncPolicy<HttpResponseMessage> resiliencyPolicies;
 
+        /// <summary>
+        /// Gets or sets the Forge configuration options.
+        /// </summary>
         protected readonly IOptions<ForgeConfiguration> configuration;
 
+        /// <summary>
+        /// Gets or sets the token cache.
+        /// </summary>
         protected ITokenCache TokenCache { get; private set; }
 
         private bool IsDefaultClient(string user) => string.IsNullOrEmpty(user) || user == ForgeAgentHandler.defaultAgentName;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ForgeHandler"/> class.
+        /// </summary>
+        /// <param name="configuration">The Forge configuration options.</param>
         public ForgeHandler(IOptions<ForgeConfiguration> configuration)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.TokenCache = new TokenCache();
             this.resiliencyPolicies = GetResiliencyPolicies(GetDefaultTimeout());
         }
+        /// <summary>
+        /// Gets the default timeout value.
+        /// </summary>
+        /// <returns>The default timeout value.</returns>
         protected virtual TimeSpan GetDefaultTimeout()
         {
-             // use timeout greater than the forge gateways (10s), we handle the GatewayTimeout response
-            return TimeSpan.FromSeconds(15); 
+            // use timeout greater than the forge gateways (10s), we handle the GatewayTimeout response
+            return TimeSpan.FromSeconds(15);
         }
-        protected virtual (int baseDelayInMs, int multiplier ) GetRetryParameters()
+        /// <summary>
+        /// Gets the retry parameters for resiliency policies.
+        /// </summary>
+        /// <returns>A tuple containing the base delay in milliseconds and the multiplier.</returns>
+        protected virtual (int baseDelayInMs, int multiplier) GetRetryParameters()
         {
             return (500, 1000);
         }
+        /// <summary>
+        /// Sends an HTTP request asynchronously.
+        /// </summary>
+        /// <param name="request">The HTTP request message.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The task representing the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the request URI is null.</exception>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (request.RequestUri == null)
@@ -80,10 +108,13 @@ namespace Autodesk.Forge.Core
             }
             return await policies.ExecuteAsync(async (ct) => await base.SendAsync(request, ct), cancellationToken);
         }
-
+        /// <summary>
+        /// Gets the token refresh policy.
+        /// A policy that attempts to retry exactly once when a 401 error is received after obtaining a new token.
+        /// </summary>
+        /// <returns>The token refresh policy.</returns>
         protected virtual IAsyncPolicy<HttpResponseMessage> GetTokenRefreshPolicy()
         {
-            // A policy that attempts to retry exactly once when 401 error is received after obtaining a new token
             return Policy
                 .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.Unauthorized)
                 .RetryAsync(
@@ -91,7 +122,11 @@ namespace Autodesk.Forge.Core
                     onRetryAsync: async (outcome, retryNumber, context) => await RefreshTokenAsync(outcome.Result.RequestMessage, true, CancellationToken.None)
                 );
         }
-
+        /// <summary>
+        /// Gets the resiliency policies for handling HTTP requests.
+        /// </summary>
+        /// <param name="timeoutValue">The timeout value for the policies.</param>
+        /// <returns>The resiliency policies.</returns>
         protected virtual IAsyncPolicy<HttpResponseMessage> GetResiliencyPolicies(TimeSpan timeoutValue)
         {
             // Retry when HttpRequestException is thrown (low level network error) or 
@@ -149,6 +184,13 @@ namespace Autodesk.Forge.Core
             return Policy.WrapAsync<HttpResponseMessage>(breaker, retry, timeout);
         }
 
+        /// <summary>
+        /// Refreshes the token asynchronously.
+        /// </summary>
+        /// <param name="request">The HTTP request message.</param>
+        /// <param name="ignoreCache">A flag indicating whether to ignore the cache and always refresh the token.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The task representing the asynchronous operation.</returns>
         protected virtual async Task RefreshTokenAsync(HttpRequestMessage request, bool ignoreCache, CancellationToken cancellationToken)
         {
             if (request.Options.TryGetValue(ForgeConfiguration.ScopeKey, out var scope))
@@ -176,6 +218,14 @@ namespace Autodesk.Forge.Core
                 }
             }
         }
+
+        /// <summary>
+        /// Gets a 2-legged token asynchronously.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <param name="scope">The scope.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A tuple containing the token and its expiry time.</returns>
         protected virtual async Task<(string, TimeSpan)> Get2LeggedTokenAsync(string user, string scope, CancellationToken cancellationToken)
         {
             using (var request = new HttpRequestMessage())
