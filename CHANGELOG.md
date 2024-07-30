@@ -1,3 +1,7 @@
+### 4.0.2
+
+* Support .Net 8 and .Net 6
+
 ### 4.0.1
 
 * Add Documentation in the `Autodesk.Forge.Core` project.
