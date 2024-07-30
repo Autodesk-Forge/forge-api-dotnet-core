@@ -3,7 +3,7 @@
 [![SDK](https://img.shields.io/badge/SDK-3.0.0-lightgree.svg)](https://github.com/Autodesk-Forge/forge-api-dotnet-core)
 [![.NET](https://img.shields.io/badge/.NET%20-6.0-blue.svg)](https://github.com/Autodesk-Forge/forge-api-dotnet-core)
 [![BUILD](https://github.com/Autodesk-Forge/forge-api-dotnet-core/workflows/.NET%20Core/badge.svg?branch=main)](https://github.com/Autodesk-Forge/forge-api-dotnet-core/actions)
-[![Release](https://img.shields.io/nuget/v/Autodesk.Forge.Core?logo=nuget&label=nuget&color=blue)](https://www.nuget.org/packages/Autodesk.Forge.Core)
+[![nuget](https://img.shields.io/nuget/v/Autodesk.Forge.Core?logo=nuget&label=nuget&color=blue)](https://www.nuget.org/packages/Autodesk.Forge.Core)
 
 ## Overview
 
