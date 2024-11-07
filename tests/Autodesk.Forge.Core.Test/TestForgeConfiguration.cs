@@ -52,6 +52,23 @@ namespace Autodesk.Forge.Core.Test
         }
 
         [Fact]
+        public void TestValuesFromAPSEnvironment()
+        {
+            Environment.SetEnvironmentVariable("APS_CLIENT_ID", "bla");
+            Environment.SetEnvironmentVariable("APS_CLIENT_SECRET", "blabla");
+            var configuration = new ConfigurationBuilder()
+                .AddAPSAlternativeEnvironmentVariables()
+                .Build();
+            var services = new ServiceCollection();
+            services.AddForgeService(configuration);
+            var serviceProvider = services.BuildServiceProvider();
+            var config = serviceProvider.GetRequiredService<IOptions<ForgeConfiguration>>();
+            Assert.Equal("bla", config.Value.ClientId);
+            Assert.Equal("blabla",config.Value.ClientSecret);
+
+        }
+
+        [Fact]
         public void TestValuesFromJson()
         {
             var json = @"

@@ -34,7 +34,22 @@ namespace Autodesk.Forge.Core
             configurationBuilder.Add(new ForgeAlternativeConfigurationSource());
             return configurationBuilder;
         }
+
+        /// <summary>
+        /// Adds APS alternative environment variables to the configuration builder.
+        /// </summary>
+        /// <param name="configurationBuilder"></param>
+        /// <returns></returns>
+
+        public static IConfigurationBuilder AddAPSAlternativeEnvironmentVariables(this IConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Add(new APSAlternativeConfigurationSource());
+            return configurationBuilder;
+        }
+
     }
+
+    
 
     /// <summary>
     /// Represents a configuration source for loading Forge alternative configuration.
@@ -73,6 +88,50 @@ namespace Autodesk.Forge.Core
                 this.Data.Add("Forge:ClientSecret", secret);
             }
         }
+    }
+
+
+
+    /// <summary>
+    /// Represents a configuration source for loading APS alternative configuration.
+    /// </summary>
+
+    public class APSAlternativeConfigurationSource : IConfigurationSource
+    {
+        /// <summary>
+        /// Build the APS Environment Configuration Provider
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public IConfigurationProvider Build(IConfigurationBuilder builder)
+        {
+            return new APSAlternativeConfigurationProvider();
+        }
+    }
+
+    /// <summary>
+    /// Loads the APS alternative configuration from environment variables.
+    /// </summary>
+
+    public class APSAlternativeConfigurationProvider : ConfigurationProvider
+    {
+        /// <summary>
+        /// Loads the APS alternative configuration from environment variables.
+        /// </summary>
+        public override void Load()
+        {
+            var id = Environment.GetEnvironmentVariable("APS_CLIENT_ID");
+            if (!string.IsNullOrEmpty(id))
+            {
+                this.Data.Add("Forge:ClientId", id);
+            }
+            var secret = Environment.GetEnvironmentVariable("APS_CLIENT_SECRET");
+            if (!string.IsNullOrEmpty(secret))
+            {
+                this.Data.Add("Forge:ClientSecret", secret);
+            }
+        }
+
     }
 }
 
