@@ -29,6 +29,8 @@ namespace Autodesk.Forge.Core
         /// </summary>
         /// <param name="configurationBuilder">The configuration builder.</param>
         /// <returns>The configuration builder with Forge alternative environment variables added.</returns>
+        /// 
+        [Obsolete("Use AddAPSAlternativeEnvironmentVariables instead will be removed in future release")]
         public static IConfigurationBuilder AddForgeAlternativeEnvironmentVariables(this IConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.Add(new ForgeAlternativeConfigurationSource());
@@ -123,12 +125,12 @@ namespace Autodesk.Forge.Core
             var id = Environment.GetEnvironmentVariable("APS_CLIENT_ID");
             if (!string.IsNullOrEmpty(id))
             {
-                this.Data.Add("Forge:ClientId", id);
+                this.Data.Add("APS:ClientId", id);
             }
             var secret = Environment.GetEnvironmentVariable("APS_CLIENT_SECRET");
             if (!string.IsNullOrEmpty(secret))
             {
-                this.Data.Add("Forge:ClientSecret", secret);
+                this.Data.Add("APS:ClientSecret", secret);
             }
         }
 

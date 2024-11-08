@@ -1,6 +1,7 @@
 ### 4.1.1
 
-- Add support for APS alternative environment variables `APS_CLIENT_ID` and `APS_CLIENT_SECRET`
+* Add support for APS alternative environment variables `APS_CLIENT_ID` and `APS_CLIENT_SECRET`
+* `FORGE_CLIENT_ID` and `FORGE_CLIENT_SECRET` will be deprecated in future!
 
 ### 4.0.1
 
