@@ -1,3 +1,8 @@
+### 4.1.0
+
+* Add support for APS alternative environment variables `APS_CLIENT_ID` and `APS_CLIENT_SECRET`
+* `FORGE_CLIENT_ID` and `FORGE_CLIENT_SECRET` will be deprecated in future!
+
 ### 4.0.1
 
 * Add Documentation in the `Autodesk.Forge.Core` project.
@@ -18,18 +23,21 @@
 
 * Migrate to .Net 5
 * Support to return HttpStatusCode in HttpRequestException
-	
 
 ### 1.0.0.0
 
 * 1.0.0-beta4
-   * Support concurrency with `SemaphoreSlim`
+  
+  * Support concurrency with `SemaphoreSlim`
 
 * 1.0.0-beta3
-   * Configurable timeout
+  
+  * Configurable timeout
 
 * 1.0.0-beta2
-   * Fix NuGet package settings
+  
+  * Fix NuGet package settings
 
 * 1.0.0-beta1
-	* Support for `FORGE_CLIENT_ID` and `FORGE_CLIENT_SECRET` environment variables via `ForgeAlternativeConfigurationExtensions`	
+  
+  * Support for `FORGE_CLIENT_ID` and `FORGE_CLIENT_SECRET` environment variables via `ForgeAlternativeConfigurationExtensions`    

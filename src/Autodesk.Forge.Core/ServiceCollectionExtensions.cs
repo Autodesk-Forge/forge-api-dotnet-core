@@ -37,6 +37,7 @@ namespace Autodesk.Forge.Core
         {
             services.AddOptions();
             services.Configure<ForgeConfiguration>(configuration.GetSection("Forge"));
+            services.Configure<ForgeConfiguration>(configuration.GetSection("APS"));
             services.AddTransient<ForgeHandler>();
             return services.AddHttpClient<ForgeService>()
                 .AddHttpMessageHandler<ForgeHandler>();
@@ -57,6 +58,7 @@ namespace Autodesk.Forge.Core
         {
             services.AddOptions();
             services.Configure<ForgeConfiguration>(configuration.GetSection("Forge"));
+            services.Configure<ForgeConfiguration>(configuration.GetSection("APS"));
             services.AddTransient<ForgeHandler>();
             return services.AddHttpClient<ForgeService>(user)
                 .AddHttpMessageHandler(() => new ForgeAgentHandler(user))
