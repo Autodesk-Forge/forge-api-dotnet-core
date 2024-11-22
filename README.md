@@ -1,8 +1,6 @@
 # Autodesk.Forge.Core
 
-![SDK](https://img.shields.io/badge/SDK-3.0.0-lightgree.svg)
-![.NET](https://img.shields.io/badge/.NET%20Standard-2.0-blue.svg)
-![BUILD](https://github.com/Autodesk-Forge/forge-api-dotnet-core/workflows/.NET%20Core/badge.svg?branch=main)
+[![Latest Version](https://img.shields.io/nuget/v/Autodesk.Forge.Core.NetStandard.svg?label=SDK&color=normalgreen)](https://www.nuget.org/packages/Autodesk.Forge.Core.NetStandard#readme-body-tab) [![Supported Frameworks](https://img.shields.io/badge/2.0-blue.svg?label=.NET%20Standard)](https://www.nuget.org/packages/Autodesk.Forge.Core.NetStandard#supportedframeworks-body-tab) [![Build Status](https://img.shields.io/github/actions/workflow/status/Autodesk-Forge/forge-api-dotnet-core/dotnet-core.yml?branch=DotNetStandard2&label=BUILD)](https://github.com/Autodesk-Forge/forge-api-dotnet-core/actions/workflows/dotnet-core.yml)
 
 ## Overview
 
