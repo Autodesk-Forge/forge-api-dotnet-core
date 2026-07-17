@@ -1,0 +1,49 @@
+name: Publish Signed Package
+
+# Publishes a pre-signed .nupkg (attached as a GitHub Release asset) directly to
+# nuget.org, with no build/pack step. Use this for releases where the DLL was
+# signed locally with garasign (which requires Autodesk's internal network and
+# is not reachable from GitHub-hosted runners).
+#
+# Usage:
+#   1. Build and sign the package locally, then attach the .nupkg (and .snupkg,
+#      if present) as an asset to a GitHub Release, e.g.:
+#        gh release create v4.1.2-signed Autodesk.Forge.Core.4.1.2.nupkg Autodesk.Forge.Core.4.1.2.snupkg --title "v4.1.2 (signed)"
+#   2. Run this workflow from the Actions tab (workflow_dispatch), providing the
+#      release tag and the exact .nupkg asset filename.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "GitHub release tag containing the signed .nupkg asset"
+        required: true
+      package_name:
+        description: "Exact .nupkg asset filename to push (e.g. Autodesk.Forge.Core.4.1.2.nupkg)"
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download signed package from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ./packages
+          gh release download "${{ inputs.release_tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ inputs.package_name }}" \
+            --dir ./packages
+
+      - name: Push to NuGet.org
+        run: |
+          dotnet nuget push "./packages/${{ inputs.package_name }}" \
+            -k "${{ secrets.NUGETAPIKEYBYENGOPS }}" \
+            -s https://api.nuget.org/v3/index.json \
+            --skip-duplicate
