@@ -1,0 +1,63 @@
+name: Publish Signed Package
+
+# Publishes a pre-signed package set (.nupkg and, if present, its .snupkg symbol
+# package) attached as GitHub Release assets directly to nuget.org, with no
+# build/pack step. Use this for releases where the DLL was signed locally with
+# garasign (which requires Autodesk's internal network and is not reachable
+# from GitHub-hosted runners).
+#
+# Usage:
+#   1. Build and sign the package locally, then attach the .nupkg (and .snupkg,
+#      if present) as assets to a GitHub Release, e.g.:
+#        gh release create v4.1.2-signed Autodesk.Forge.Core.4.1.2.nupkg Autodesk.Forge.Core.4.1.2.snupkg --title "v4.1.2 (signed)"
+#   2. Run this workflow from the Actions tab (workflow_dispatch), providing the
+#      release tag and the package id+version (e.g. Autodesk.Forge.Core.4.1.2).
+#      Both the .nupkg and, if attached, the matching .snupkg will be downloaded
+#      and pushed together.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "GitHub release tag containing the signed .nupkg (and optional .snupkg) asset"
+        required: true
+      package_id_version:
+        description: "Package id + version, no extension (e.g. Autodesk.Forge.Core.4.1.2)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download signed package(s) from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ./packages
+          gh release download "${{ inputs.release_tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ inputs.package_id_version }}.nupkg" \
+            --dir ./packages
+          gh release download "${{ inputs.release_tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ inputs.package_id_version }}.snupkg" \
+            --dir ./packages \
+            --skip-existing || echo "No matching .snupkg asset found, continuing with .nupkg only."
+
+      - name: Push to NuGet.org
+        run: |
+          for f in ./packages/*.nupkg ./packages/*.snupkg; do
+            [ -e "$f" ] || continue
+            dotnet nuget push "$f" \
+              -k "${{ secrets.NUGETAPIKEYBYENGOPS }}" \
+              -s https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
